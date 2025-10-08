@@ -10,17 +10,16 @@ export default function HomePage() {
   const [page, setPage] = useState("Dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // ✅ Lifted items state here
   const [items, setItems] = useState([
-    { id: 1, name: "Laptop", quantity: 10, category: "Finished Goods", image: null },
-    { id: 2, name: "Keyboard", quantity: 3, category: "Raw Materials", image: null },
-    { id: 3, name: "Mouse", quantity: 40, category: "Finished Goods", image: null },
-    { id: 4, name: "Ice Cream Mix", quantity: 500, category: "Raw Materials", image: null },
-    { id: 5, name: "Stick", quantity: 100, category: "Raw Materials", image: null },
-    { id: 6, name: "Bottle", quantity: 50, category: "Raw Materials", image: null },
+    { id: 1, name: "Laptop", quantity: 10, category: "Finished Goods" },
+    { id: 2, name: "Keyboard", quantity: 3, category: "Raw Materials" },
+    { id: 3, name: "Mouse", quantity: 40, category: "Finished Goods" },
   ]);
 
-  const menuItems = ["Dashboard","Orders" ,"Items","Production" ,"Shipments", "Settings"];
+  const [orders, setOrders] = useState([]);
+  const [productions, setProductions] = useState([]);
+
+  const menuItems = ["Dashboard", "Orders", "Items", "Production", "Shipments", "Settings"];
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -65,14 +64,31 @@ export default function HomePage() {
         </div>
 
         <main className="flex-1 p-4 sm:p-6 overflow-y-auto">
-          {page === "Dashboard" && <Dashboard items={items} />}
+          {page === "Dashboard" && (
+            <Dashboard
+              items={items}
+              orders={orders}
+              productions={productions}
+              setPage={setPage}
+            />
+          )}
           {page === "Items" && <ItemsSection items={items} setItems={setItems} />}
-            {page === "Production" && <FinishedGoodsProduction items={items} setItems={setItems} />}
+          {page === "Production" && (
+            <FinishedGoodsProduction
+              items={items}
+              setItems={setItems}
+              productions={productions}
+              setProductions={setProductions}
+            />
+          )}
           {page === "Shipments" && <ShipmentsSection />}
           {page === "Settings" && <SettingsSection />}
-          {page === "Orders" && <Orders items={items} setItems={setItems} />}
+          {page === "Orders" && (
+            <Orders items={items} setItems={setItems} orders={orders} setOrders={setOrders} />
+          )}
         </main>
       </div>
     </div>
   );
 }
+

@@ -2,11 +2,17 @@ import { useState } from "react";
 
 export default function OrderModal({ order, closeModal, deleteOrder, restockOrder }) {
   const [itemsState, setItemsState] = useState(order.items);
-  const [newItem, setNewItem] = useState({ name: "", qty: 1, rate: 0 });
+  const [newItem, setNewItem] = useState({ name: "", qty: 1, rate: 0, unit: "Nos" });
 
   const handleQtyChange = (index, value) => {
     const updated = [...itemsState];
     updated[index].qty = Number(value);
+    setItemsState(updated);
+  };
+
+  const handleUnitChange = (index, value) => {
+    const updated = [...itemsState];
+    updated[index].unit = value;
     setItemsState(updated);
   };
 
@@ -15,12 +21,12 @@ export default function OrderModal({ order, closeModal, deleteOrder, restockOrde
   const addItem = () => {
     if (!newItem.name) return alert("Enter item name");
     setItemsState([...itemsState, { ...newItem, qty: Number(newItem.qty), rate: Number(newItem.rate) }]);
-    setNewItem({ name: "", qty: 1, rate: 0 });
+    setNewItem({ name: "", qty: 1, rate: 0, unit: "Nos" });
   };
 
   const exportCSV = () => {
-    const headers = ["Item", "Qty", "Rate", "Amount"];
-    const rows = itemsState.map((i) => [i.name, i.qty, i.rate, i.qty * i.rate]);
+    const headers = ["Item", "Qty", "Unit", "Rate", "Amount"];
+    const rows = itemsState.map((i) => [i.name, i.qty, i.unit, i.rate, i.qty * i.rate]);
     let csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
@@ -58,6 +64,7 @@ export default function OrderModal({ order, closeModal, deleteOrder, restockOrde
               <th className="border px-3 py-2 text-left">#</th>
               <th className="border px-3 py-2 text-left">Item</th>
               <th className="border px-3 py-2 text-center">Qty</th>
+              <th className="border px-3 py-2 text-center">Unit</th>
               <th className="border px-3 py-2 text-center">Rate</th>
               <th className="border px-3 py-2 text-center">Amount</th>
               <th className="border px-3 py-2 text-center print:hidden">Action</th>
@@ -70,6 +77,14 @@ export default function OrderModal({ order, closeModal, deleteOrder, restockOrde
                 <td className="border px-3 py-1">{i.name}</td>
                 <td className="border px-3 py-1 text-center">
                   <input type="number" value={i.qty} min="1" onChange={(e) => handleQtyChange(idx, e.target.value)} className="w-16 text-center border rounded print:border-none print:w-12 print:text-center appearance-none" />
+                </td>
+                <td className="border px-3 py-1 text-center">
+                  <select value={i.unit} onChange={(e) => handleUnitChange(idx, e.target.value)} className="border rounded px-1 py-0.5">
+                    <option value="Nos">Nos</option>
+                    <option value="Kg">Kg</option>
+                    <option value="Set">Set</option>
+                    <option value="Roll">Roll</option>
+                  </select>
                 </td>
                 <td className="border px-3 py-1 text-center">{i.rate}</td>
                 <td className="border px-3 py-1 text-center">{i.qty * i.rate}</td>
@@ -85,6 +100,14 @@ export default function OrderModal({ order, closeModal, deleteOrder, restockOrde
               </td>
               <td className="border px-3 py-1 text-center">
                 <input type="number" value={newItem.qty} min="1" onChange={(e) => setNewItem({ ...newItem, qty: e.target.value })} className="w-16 text-center border rounded" />
+              </td>
+              <td className="border px-3 py-1 text-center">
+                <select value={newItem.unit} onChange={(e) => setNewItem({ ...newItem, unit: e.target.value })} className="border rounded px-1 py-0.5">
+                  <option value="Nos">Nos</option>
+                  <option value="Kg">Kg</option>
+                  <option value="Set">Set</option>
+                  <option value="Roll">Roll</option>
+                </select>
               </td>
               <td className="border px-3 py-1 text-center">
                 <input type="number" value={newItem.rate} min="0" onChange={(e) => setNewItem({ ...newItem, rate: e.target.value })} className="w-20 text-center border rounded" />

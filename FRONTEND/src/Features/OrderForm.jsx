@@ -1,5 +1,5 @@
-
 import { useState } from "react";
+import { FaTrash } from "react-icons/fa";
 
 export default function OrderForm({ items, setItems, addNewOrder }) {
   const [ledgerName, setLedgerName] = useState("");
@@ -10,7 +10,7 @@ export default function OrderForm({ items, setItems, addNewOrder }) {
 
   const addOrderItem = (itemName) => {
     if (!itemName || orderItems.find((o) => o.name === itemName)) return;
-    setOrderItems([...orderItems, { name: itemName, qty: 1, rate: 0 }]);
+    setOrderItems([...orderItems, { name: itemName, qty: 1 }]);
   };
 
   const removeOrderItem = (index) => {
@@ -52,9 +52,10 @@ export default function OrderForm({ items, setItems, addNewOrder }) {
   };
 
   return (
-    <div className="bg-white shadow-md rounded-lg p-6 flex-1">
-      <h2 className="text-2xl font-semibold text-green-700 mb-4">🛒 New Order</h2>
+    <div className="bg-white/70 backdrop-blur-md shadow-lg rounded-xl p-6 flex-1 transition-all">
+      <h2 className="text-2xl font-bold text-green-700 mb-5">🛒 New Order</h2>
 
+      {/* Ledger Name */}
       <div className="mb-4">
         <label className="block text-gray-700 mb-1">Ledger / Customer Name</label>
         <input
@@ -62,10 +63,11 @@ export default function OrderForm({ items, setItems, addNewOrder }) {
           value={ledgerName}
           onChange={(e) => setLedgerName(e.target.value)}
           placeholder="Enter customer name"
-          className="border px-3 py-2 rounded w-full"
+          className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-green-300"
         />
       </div>
 
+      {/* Search & Select Item */}
       <div className="mb-4">
         <label className="block text-gray-700 mb-1">Add Item</label>
         <input
@@ -73,11 +75,11 @@ export default function OrderForm({ items, setItems, addNewOrder }) {
           placeholder="Search finished goods..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="border px-3 py-2 rounded w-full mb-2"
+          className="border border-gray-300 rounded px-3 py-2 w-full mb-2 focus:outline-none focus:ring-2 focus:ring-green-300"
         />
         <select
           onChange={(e) => addOrderItem(e.target.value)}
-          className="border px-3 py-2 rounded w-full"
+          className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-green-300"
         >
           <option value="">Select Item</option>
           {finishedGoods
@@ -90,37 +92,44 @@ export default function OrderForm({ items, setItems, addNewOrder }) {
         </select>
       </div>
 
+      {/* Order Items */}
       {orderItems.length > 0 && (
         <div className="mb-4">
-          <h3 className="font-semibold mb-2 text-green-700">Order Items:</h3>
-          {orderItems.map((o, idx) => (
-            <div key={idx} className="flex gap-2 items-center mb-2">
-              <span className="flex-1">{o.name}</span>
-              <input
-                type="number"
-                value={o.qty}
-                min="1"
-                onChange={(e) => {
-                  const newItems = [...orderItems];
-                  newItems[idx].qty = Number(e.target.value);
-                  setOrderItems(newItems);
-                }}
-                className="border px-2 py-1 rounded w-20"
-              />
-              <button
-                onClick={() => removeOrderItem(idx)}
-                className="bg-red-500 text-white px-2 py-1 rounded"
+          <h3 className="font-semibold mb-2 text-green-700">Order Items</h3>
+          <div className="space-y-2">
+            {orderItems.map((o, idx) => (
+              <div
+                key={idx}
+                className="flex items-center gap-2 p-2 rounded-lg bg-white/50 backdrop-blur-sm"
               >
-                ❌
-              </button>
-            </div>
-          ))}
+                <span className="flex-1 font-medium">{o.name}</span>
+                <input
+                  type="number"
+                  min="1"
+                  value={o.qty}
+                  onChange={(e) => {
+                    const updated = [...orderItems];
+                    updated[idx].qty = Number(e.target.value);
+                    setOrderItems(updated);
+                  }}
+                  className="w-20 px-2 py-1 border rounded text-center focus:outline-none focus:ring-2 focus:ring-green-300"
+                />
+                <button
+                  onClick={() => removeOrderItem(idx)}
+                  className="bg-red-500 text-white p-2 rounded hover:bg-red-400 transition"
+                  title="Remove Item"
+                >
+                  <FaTrash />
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
       <button
         onClick={placeOrder}
-        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-500 w-full"
+        className="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded w-full font-semibold transition-all"
       >
         Place Order
       </button>
