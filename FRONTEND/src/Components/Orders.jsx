@@ -26,46 +26,40 @@ export default function Orders({ items, setItems }) {
     if (selectedOrder === order) setSelectedOrder(null);
   };
 
+  const updateOrder = (updatedOrder) => {
+    setOrders(orders.map(o => o === selectedOrder ? updatedOrder : o));
+  };
+
   return (
     <div className="min-h-[85vh] p-6 bg-gradient-to-br from-blue-50 via-white to-indigo-100 rounded-xl">
-      {/* Header */}
       <h1 className="text-3xl font-extrabold text-blue-700 mb-6 text-center">
         🛒 Orders Management
       </h1>
 
       {/* Tabs */}
       <div className="flex justify-center gap-4 mb-6">
-        <button
-          onClick={() => setActiveTab("form")}
-          className={`flex items-center gap-2 px-6 py-2 rounded-xl font-semibold transition-all duration-300 ${
-            activeTab === "form"
-              ? "bg-white/70 backdrop-blur-md shadow-lg text-blue-700"
-              : "bg-white/50 backdrop-blur-sm border border-blue-200 text-blue-600 hover:bg-white/60"
-          }`}
-        >
-          <FaPlusCircle /> New Order
-        </button>
-
-        <button
-          onClick={() => setActiveTab("history")}
-          className={`flex items-center gap-2 px-6 py-2 rounded-xl font-semibold transition-all duration-300 ${
-            activeTab === "history"
-              ? "bg-white/70 backdrop-blur-md shadow-lg text-blue-700"
-              : "bg-white/50 backdrop-blur-sm border border-blue-200 text-blue-600 hover:bg-white/60"
-          }`}
-        >
-          <FaHistory /> Order History
-        </button>
+        {[
+          { key: "form", icon: <FaPlusCircle />, label: "New Order" },
+          { key: "history", icon: <FaHistory />, label: "Order History" },
+        ].map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={`flex items-center gap-2 px-6 py-2 rounded-xl font-semibold transition-all duration-300 ${
+              activeTab === tab.key
+                ? "bg-white/70 backdrop-blur-md shadow-lg text-blue-700"
+                : "bg-white/50 backdrop-blur-sm border border-blue-200 text-blue-600 hover:bg-white/60"
+            }`}
+          >
+            {tab.icon} {tab.label}
+          </button>
+        ))}
       </div>
 
       {/* Tab Content */}
       <div className="bg-white/70 backdrop-blur-md rounded-xl shadow-lg p-6 transition-all duration-300">
         {activeTab === "form" ? (
-          <OrderForm
-            items={items}
-            setItems={setItems}
-            addNewOrder={addNewOrder}
-          />
+          <OrderForm items={items} setItems={setItems} addNewOrder={addNewOrder} />
         ) : (
           <OrderHistory
             orders={orders}
@@ -80,9 +74,9 @@ export default function Orders({ items, setItems }) {
       {selectedOrder && (
         <OrderModal
           order={selectedOrder}
-          closeModal={() => setSelectedOrder(null)}
+          onClose={() => setSelectedOrder(null)}
+          updateOrder={updateOrder}
           deleteOrder={deleteOrder}
-          restockOrder={restockOrder}
         />
       )}
     </div>
