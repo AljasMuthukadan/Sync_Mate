@@ -1,37 +1,35 @@
 import { useState } from "react";
 import { FaTrash, FaPrint, FaSave, FaTimes, FaPlus } from "react-icons/fa";
-import PrintInvoice from "./PrintInvoice.jsx"; // Tally-style print page
+import PrintInvoice from "./PrintInvoice.jsx";
 
-export default function OrderModal({ order, closeModal, deleteOrder, restockOrder }) {
+export default function OrderModal({ order, onClose, deleteOrder, updateOrder }) {
   const [isEditing, setIsEditing] = useState(false);
   const [showPrint, setShowPrint] = useState(false);
-  const [itemsState, setItemsState] = useState(order.items || []);
+
+  // ✅ Ensure all items have a default "Nos" unit
+  const [itemsState, setItemsState] = useState(
+    (order.items || []).map((item) => ({
+      ...item,
+      unit: item.unit || "Nos",
+    }))
+  );
+
   const [newItem, setNewItem] = useState({ name: "", qty: 1, rate: 0, unit: "Nos" });
 
+  // 🧾 Print Mode
   if (showPrint) {
-    return <PrintInvoice order={order} onClose={() => setShowPrint(false)} />;
+    return <PrintInvoice order={{ ...order, items: itemsState }} onClose={() => setShowPrint(false)} />;
   }
 
-  const handleQtyChange = (index, value) => {
+  // 🔧 Handlers
+  const handleChange = (index, field, value) => {
     const updated = [...itemsState];
-    updated[index].qty = Number(value);
-    setItemsState(updated);
-  };
-
-  const handleRateChange = (index, value) => {
-    const updated = [...itemsState];
-    updated[index].rate = Number(value);
-    setItemsState(updated);
-  };
-
-  const handleUnitChange = (index, value) => {
-    const updated = [...itemsState];
-    updated[index].unit = value;
+    updated[index][field] = field === "qty" || field === "rate" ? Number(value) : value;
     setItemsState(updated);
   };
 
   const addItem = () => {
-    if (!newItem.name) return alert("Enter item name");
+    if (!newItem.name.trim()) return alert("Enter item name");
     setItemsState([...itemsState, { ...newItem, qty: Number(newItem.qty), rate: Number(newItem.rate) }]);
     setNewItem({ name: "", qty: 1, rate: 0, unit: "Nos" });
   };
@@ -39,13 +37,15 @@ export default function OrderModal({ order, closeModal, deleteOrder, restockOrde
   const removeItem = (index) => setItemsState(itemsState.filter((_, i) => i !== index));
 
   const saveChanges = () => {
-    order.items = itemsState;
+    const updatedOrder = { ...order, items: itemsState };
+    updateOrder(updatedOrder);
     setIsEditing(false);
     alert("✅ Order updated successfully!");
   };
 
   const subtotal = itemsState.reduce((acc, i) => acc + i.qty * i.rate, 0);
 
+  // 🪄 UI
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl overflow-hidden border border-gray-200">
@@ -64,25 +64,28 @@ export default function OrderModal({ order, closeModal, deleteOrder, restockOrde
             >
               <FaPrint /> Print
             </button>
+
             <button
-              onClick={() => setIsEditing(!isEditing)}
+              onClick={() => (isEditing ? saveChanges() : setIsEditing(true))}
               className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white px-3 py-2 rounded-lg shadow-md transition"
             >
               <FaSave /> {isEditing ? "Save & Close" : "Edit Order"}
             </button>
+
             <button
               onClick={() => {
                 if (confirm("Are you sure you want to delete this order?")) {
                   deleteOrder(order);
-                  closeModal();
+                  onClose();
                 }
               }}
               className="flex items-center gap-2 bg-red-600 hover:bg-red-500 text-white px-3 py-2 rounded-lg shadow-md transition"
             >
               <FaTrash /> Delete
             </button>
+
             <button
-              onClick={closeModal}
+              onClick={onClose}
               className="flex items-center gap-2 bg-gray-600 hover:bg-gray-500 text-white px-3 py-2 rounded-lg shadow-md transition"
             >
               <FaTimes /> Close
@@ -109,24 +112,26 @@ export default function OrderModal({ order, closeModal, deleteOrder, restockOrde
                 <tr key={idx} className="hover:bg-blue-50 transition">
                   <td className="border px-3 py-2 text-center">{idx + 1}</td>
                   <td className="border px-3 py-2">{i.name}</td>
+
                   <td className="border px-3 py-2 text-center">
                     {isEditing ? (
                       <input
                         type="number"
                         min="1"
                         value={i.qty}
-                        onChange={(e) => handleQtyChange(idx, e.target.value)}
+                        onChange={(e) => handleChange(idx, "qty", e.target.value)}
                         className="w-16 text-center border rounded px-2 py-1"
                       />
                     ) : (
                       i.qty
                     )}
                   </td>
+
                   <td className="border px-3 py-2 text-center">
                     {isEditing ? (
                       <select
                         value={i.unit}
-                        onChange={(e) => handleUnitChange(idx, e.target.value)}
+                        onChange={(e) => handleChange(idx, "unit", e.target.value)}
                         className="border rounded px-1 py-1"
                       >
                         <option value="Nos">Nos</option>
@@ -138,20 +143,25 @@ export default function OrderModal({ order, closeModal, deleteOrder, restockOrde
                       i.unit
                     )}
                   </td>
+
                   <td className="border px-3 py-2 text-center">
                     {isEditing ? (
                       <input
                         type="number"
                         min="0"
                         value={i.rate}
-                        onChange={(e) => handleRateChange(idx, e.target.value)}
+                        onChange={(e) => handleChange(idx, "rate", e.target.value)}
                         className="w-20 text-center border rounded px-2 py-1"
                       />
                     ) : (
                       i.rate
                     )}
                   </td>
-                  <td className="border px-3 py-2 text-center">{(i.qty * i.rate).toFixed(2)}</td>
+
+                  <td className="border px-3 py-2 text-center">
+                    {(i.qty * i.rate).toFixed(2)}
+                  </td>
+
                   {isEditing && (
                     <td className="border px-3 py-2 text-center">
                       <button
@@ -164,6 +174,7 @@ export default function OrderModal({ order, closeModal, deleteOrder, restockOrde
                   )}
                 </tr>
               ))}
+
               {isEditing && (
                 <tr className="bg-gray-50">
                   <td className="border px-3 py-2 text-center">+</td>
@@ -230,4 +241,3 @@ export default function OrderModal({ order, closeModal, deleteOrder, restockOrde
     </div>
   );
 }
-

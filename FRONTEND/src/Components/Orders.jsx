@@ -27,7 +27,7 @@ export default function Orders({ items, setItems }) {
   };
 
   const updateOrder = (updatedOrder) => {
-    setOrders(orders.map(o => o === selectedOrder ? updatedOrder : o));
+    setOrders(orders.map((o) => (o === selectedOrder ? updatedOrder : o)));
   };
 
   return (
@@ -59,7 +59,10 @@ export default function Orders({ items, setItems }) {
       {/* Tab Content */}
       <div className="bg-white/70 backdrop-blur-md rounded-xl shadow-lg p-6 transition-all duration-300">
         {activeTab === "form" ? (
-          <OrderForm items={items} setItems={setItems} addNewOrder={addNewOrder} />
+          <OrderForm
+            addNewOrder={addNewOrder}
+            onClose={() => setActiveTab("history")}
+          />
         ) : (
           <OrderHistory
             orders={orders}
@@ -70,7 +73,7 @@ export default function Orders({ items, setItems }) {
         )}
       </div>
 
-      {/* Modal */}
+      {/* Modal for viewing or editing existing orders */}
       {selectedOrder && (
         <OrderModal
           order={selectedOrder}

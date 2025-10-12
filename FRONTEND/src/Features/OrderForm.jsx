@@ -1,174 +1,276 @@
-import { useState } from "react";
-import { FaTrash } from "react-icons/fa";
+import { useState, useRef } from "react";
+import { FaSave, FaPrint, FaTimes, FaTrash } from "react-icons/fa";
 
-export default function OrderForm({ items, setItems, addNewOrder }) {
-  const [ledgerName, setLedgerName] = useState("");
-  const [orderItems, setOrderItems] = useState([]);
-  const [search, setSearch] = useState("");
+export default function OrderForm({ addNewOrder, onClose }) {
+  const ledgerList = ["ABC Traders", "XYZ Enterprises", "LMN Corp","SS Impex","Global Supplies",
+    "Crystal Distributions"
+  ];
+  const itemList = [
+    { name: "Product A", rate: 100, unit: "Nos" },
+    { name: "Product B", rate: 200, unit: "Kg" },
+    { name: "Product C", rate: 150, unit: "Set" },
+    { name: "Durofill GL-250 400gm", rate: 840, unit: "Nos" },
+    { name: "Durofill Gel 400gm", rate: 860, unit: "Nos" },
+    { name: "Durofill GL-250 1500gm", rate: 2525, unit: "Nos" },
+    { name: "Durofill Pigment Carbon Black 10gm", rate: 85, unit: "Nos" },
+    { name: "Durofill Pigment Porcelain White 40gm", rate: 275, unit: "Nos" },
+  ];
 
-  const finishedGoods = items.filter((i) => i.category === "Finished Goods");
+  const [ledger, setLedger] = useState("");
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [billNo, setBillNo] = useState(Math.floor(Math.random() * 10000));
+  const [items, setItems] = useState([{ name: "", qty: 0, rate: 0, unit: "Nos" }]);
 
-  const addOrderItem = (itemName) => {
-    if (!itemName || orderItems.find((o) => o.name === itemName)) return;
-    setOrderItems([
-      ...orderItems,
-      { name: itemName, qty: 1, rate: 0, total: 0 },
-    ]);
-  };
+  const inputRefs = useRef([]);
 
-  const removeOrderItem = (index) => {
-    setOrderItems(orderItems.filter((_, i) => i !== index));
-  };
+  const subtotal = items.reduce((acc, i) => acc + i.qty * i.rate, 0);
+  const tax = subtotal * 0.18;
+  const total =  subtotal + tax;
+ 
+  const handleChange = (index, field, value) => {
+    const updated = [...items];
+    updated[index][field] = field === "qty" || field === "rate" ? Number(value) : value;
 
-  const updateItemField = (index, field, value) => {
-    const updated = [...orderItems];
-    updated[index][field] = Number(value);
-    updated[index].total = updated[index].qty * updated[index].rate;
-    setOrderItems(updated);
-  };
-
-  const placeOrder = () => {
-    if (!ledgerName || orderItems.length === 0) {
-      alert("Please enter ledger name and add at least one item.");
-      return;
+    if (field === "name") {
+      const item = itemList.find((it) => it.name === value);
+      if (item) {
+        updated[index].rate = item.rate;
+        updated[index].unit = item.unit;
+      }
     }
 
-    const insufficient = orderItems.filter((o) => {
-      const stockItem = items.find((i) => i.name === o.name);
-      return !stockItem || stockItem.quantity < o.qty;
-    });
-
-    if (insufficient.length > 0) {
-      alert("Not enough stock for: " + insufficient.map((i) => i.name).join(", "));
-      return;
-    }
-
-    const updatedItems = items.map((i) => {
-      const ordered = orderItems.find((o) => o.name === i.name);
-      if (ordered) return { ...i, quantity: i.quantity - ordered.qty };
-      return i;
-    });
-    setItems(updatedItems);
-
-    const totalAmount = orderItems.reduce((sum, i) => sum + i.total, 0);
-
-    addNewOrder({
-      ledger: ledgerName,
-      items: orderItems,
-      total: totalAmount,
-      date: new Date().toLocaleString(),
-    });
-
-    setLedgerName("");
-    setOrderItems([]);
-    setSearch("");
+    setItems(updated);
   };
 
-  const totalAmount = orderItems.reduce((sum, i) => sum + i.total, 0);
+  const addRow = () => {
+    setItems([...items, { name: "", qty: 0, rate: 0, unit: "Nos" }]);
+  };
+
+  const removeRow = (index) => setItems(items.filter((_, i) => i !== index));
+
+  const handlePlaceOrder = () => {
+    if (!ledger.trim()) return alert("Please enter a ledger name!");
+    const filteredItems = items.filter((i) => i.name);
+    if (filteredItems.length === 0) return alert("Please add at least one item!");
+    const order = { ledger, date, billNo, items: filteredItems, subtotal, tax, total };
+    addNewOrder(order);
+    alert("✅ Order placed successfully!");
+    resetForm();
+    if (onClose) onClose();
+  };
+
+  const resetForm = () => {
+    setLedger("");
+    setBillNo(Math.floor(Math.random() * 10000));
+    setItems([{ name: "", qty: 1, rate: 0, unit: "Nos" }]);
+    inputRefs.current = [];
+  };
+
+  const handleKeyDown = (e, idx, field) => {
+    if (e.key !== "Enter") return;
+
+    if (field === "name") {
+      inputRefs.current[idx].qty.focus();
+    } else if (field === "qty") {
+      inputRefs.current[idx].rate.focus();
+    } else if (field === "rate") {
+      const current = items[idx];
+      if (current.name || current.qty || current.rate) {
+        addRow();
+        setTimeout(() => {
+          const newIndex = items.length;
+          inputRefs.current[newIndex].name.focus();
+        }, 50);
+      } else {
+        handlePlaceOrder();
+      }
+    }
+  };
 
   return (
-    <div className="bg-white/70 backdrop-blur-lg shadow-2xl rounded-2xl p-6 flex-1 border border-gray-100 transition-all hover:shadow-green-300/40">
-      <h2 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-400 text-transparent bg-clip-text mb-5">
-        🧾 Create New Order
-      </h2>
-
-      {/* Ledger Input */}
-      <div className="mb-4">
-        <label className="block text-gray-700 mb-1 font-medium">
-          Ledger / Customer Name
-        </label>
-        <input
-          type="text"
-          value={ledgerName}
-          onChange={(e) => setLedgerName(e.target.value)}
-          placeholder="Enter customer name"
-          className="border border-gray-300 rounded-lg px-3 py-2 w-full shadow-sm focus:ring-2 focus:ring-green-400 focus:outline-none"
-        />
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 p-6">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6 border-b pb-3">
+        <h1 className="text-3xl font-bold text-gray-800">🧾 Sales Voucher Entry</h1>
+        <div className="flex gap-3">
+          <button
+            onClick={handlePlaceOrder}
+            className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg shadow"
+          >
+            <FaSave /> Place Order
+          </button>
+          <button
+            onClick={() => window.print()}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg shadow"
+          >
+            <FaPrint /> Print
+          </button>
+          <button
+            onClick={onClose}
+            className="flex items-center gap-2 bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded-lg shadow"
+          >
+            <FaTimes /> Close
+          </button>
+        </div>
       </div>
 
-      {/* Item Search */}
-      <div className="mb-4">
-        <label className="block text-gray-700 mb-1 font-medium">Add Item</label>
-        <input
-          type="text"
-          placeholder="Search finished goods..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 w-full mb-2 focus:outline-none focus:ring-2 focus:ring-green-400"
-        />
-        <select
-          onChange={(e) => addOrderItem(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 w-full shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400"
-        >
-          <option value="">Select Item</option>
-          {finishedGoods
-            .filter((i) => i.name.toLowerCase().includes(search.toLowerCase()))
-            .map((item) => (
-              <option key={item.id} value={item.name}>
-                {item.name} (Stock: {item.quantity})
-              </option>
+      {/* Voucher Info */}
+      <div className="grid grid-cols-3 gap-6 bg-white p-5 rounded-xl shadow border mb-6">
+        <div>
+          <label className="block font-semibold mb-1 text-gray-700">Ledger Name:</label>
+          <input
+            list="ledger-list"
+            type="text"
+            value={ledger}
+            onChange={(e) => setLedger(e.target.value)}
+            placeholder="Enter party name"
+            className="border rounded px-3 py-2 w-full focus:ring focus:ring-blue-200"
+          />
+          <datalist id="ledger-list">
+            {ledgerList.map((l, idx) => (
+              <option key={idx} value={l} />
             ))}
-        </select>
+          </datalist>
+        </div>
+        <div>
+          <label className="block font-semibold mb-1 text-gray-700">Date:</label>
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="border rounded px-3 py-2 w-full focus:ring focus:ring-blue-200"
+          />
+        </div>
+        <div>
+          <label className="block font-semibold mb-1 text-gray-700">Bill No:</label>
+          <input
+            type="text"
+            value={billNo}
+            onChange={(e) => setBillNo(e.target.value)}
+            className="border rounded px-3 py-2 w-full focus:ring focus:ring-blue-200"
+          />
+        </div>
       </div>
 
-      {/* Order Items */}
-      {orderItems.length > 0 && (
-        <div className="mb-4">
-          <h3 className="font-semibold text-green-700 mb-2">Order Items</h3>
-          <div className="space-y-3">
-            {orderItems.map((o, idx) => (
-              <div
-                key={idx}
-                className="grid grid-cols-5 gap-2 items-center bg-white/60 p-2 rounded-lg shadow-sm hover:shadow-md transition"
-              >
-                <span className="font-medium col-span-2">{o.name}</span>
-
-                <input
-                  type="number"
-                  min="1"
-                  value={o.qty}
-                  onChange={(e) => updateItemField(idx, "qty", e.target.value)}
-                  className="px-2 py-1 border rounded text-center focus:ring-2 focus:ring-green-400"
-                />
-
-                <input
-                  type="number"
-                  min="0"
-                  value={o.rate}
-                  placeholder="Rate"
-                  onChange={(e) => updateItemField(idx, "rate", e.target.value)}
-                  className="px-2 py-1 border rounded text-center focus:ring-2 focus:ring-green-400"
-                />
-
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold text-gray-700">
-                    ₹{o.total.toFixed(2)}
-                  </span>
+      {/* Items Table */}
+      <div className="bg-white p-5 rounded-xl shadow border overflow-x-auto">
+        <table className="w-full text-sm border-collapse border border-gray-300">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="border px-2 py-2 text-center w-10">#</th>
+              <th className="border px-2 py-2 text-left">Item Name</th>
+              <th className="border px-2 py-2 text-center w-24">Qty</th>
+              <th className="border px-2 py-2 text-center w-24">Unit</th>
+              <th className="border px-2 py-2 text-center w-32">Rate</th>
+              <th className="border px-2 py-2 text-center w-32">Amount</th>
+              <th className="border px-2 py-2 text-center w-16">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((item, idx) => (
+              <tr key={idx} className="hover:bg-gray-50">
+                <td className="border px-2 py-1 text-center">{idx + 1}</td>
+                <td className="border px-2 py-1">
+                  <input
+                    list="item-list"
+                    ref={(el) =>
+                      (inputRefs.current[idx] = {
+                        name: el,
+                        qty: inputRefs.current[idx]?.qty,
+                        rate: inputRefs.current[idx]?.rate,
+                      })
+                    }
+                    type="text"
+                    value={item.name}
+                    onChange={(e) => handleChange(idx, "name", e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(e, idx, "name")}
+                    className="w-full border-none outline-none"
+                    placeholder="Item name"
+                  />
+                </td>
+                <td className="border px-2 py-1 text-center">
+                  <input
+                    ref={(el) =>
+                      (inputRefs.current[idx] = {
+                        ...inputRefs.current[idx],
+                        qty: el,
+                      })
+                    }
+                    type="number"
+                    min="1"
+                    value={item.qty}
+                    onChange={(e) => handleChange(idx, "qty", e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(e, idx, "qty")}
+                    className="w-16 text-center border rounded px-1"
+                  />
+                </td>
+                <td className="border px-2 py-1 text-center">
+                  <select
+                    value={item.unit}
+                    onChange={(e) => handleChange(idx, "unit", e.target.value)}
+                    className="border rounded px-2 py-1"
+                  >
+                    <option value="Nos">Nos</option>
+                    <option value="Kg">Kg</option>
+                    <option value="Set">Set</option>
+                    <option value="Roll">Roll</option>
+                  </select>
+                </td>
+                <td className="border px-2 py-1 text-center">
+                  <input
+                    ref={(el) =>
+                      (inputRefs.current[idx] = {
+                        ...inputRefs.current[idx],
+                        rate: el,
+                      })
+                    }
+                    type="number"
+                    min="0"
+                    value={item.rate}
+                    onChange={(e) => handleChange(idx, "rate", e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(e, idx, "rate")}
+                    className="w-24 text-center border rounded px-1"
+                  />
+                </td>
+                <td className="border px-2 py-1 text-right pr-3">
+                  {(item.qty * item.rate).toFixed(2)}
+                </td>
+                <td className="border px-2 py-1 text-center">
                   <button
-                    onClick={() => removeOrderItem(idx)}
-                    className="bg-red-500 text-white p-2 rounded hover:bg-red-400 transition"
-                    title="Remove Item"
+                    onClick={() => removeRow(idx)}
+                    className="text-red-500 hover:text-red-700"
                   >
                     <FaTrash />
                   </button>
-                </div>
-              </div>
+                </td>
+              </tr>
             ))}
-          </div>
+          </tbody>
+        </table>
+      </div>
 
-          {/* Total */}
-          <div className="text-right mt-4 font-bold text-lg text-green-700">
-            Total Amount: ₹{totalAmount.toFixed(2)}
-          </div>
+      {/* Totals */}
+      <div className="flex justify-end mt-6">
+        <div className="bg-white rounded-xl shadow border p-5 w-80 space-y-2 text-right text-gray-800">
+          <p>
+            Subtotal: <span className="font-semibold">₹{subtotal.toFixed(2)}</span>
+          </p>
+          <p>
+            Tax (18%): <span className="font-semibold">₹{tax.toFixed(2)}</span>
+          </p>
+          <p className="text-lg font-bold">
+            Total: <span className="text-blue-700">₹{total.toFixed(2)}</span>
+          </p>
         </div>
-      )}
+      </div>
 
-      <button
-        onClick={placeOrder}
-        className="bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-500 hover:to-emerald-400 text-white font-semibold px-4 py-2 rounded-lg w-full shadow-md transition-all"
-      >
-        ✅ Place Order
-      </button>
+      {/* Datalist */}
+      <datalist id="item-list">
+        {itemList.map((i, idx) => (
+          <option key={idx} value={i.name} />
+        ))}
+      </datalist>
     </div>
   );
 }
+
