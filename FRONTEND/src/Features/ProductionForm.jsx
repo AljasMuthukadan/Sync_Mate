@@ -22,7 +22,7 @@ export default function ProductionForm({
   return (
     <div className="bg-white shadow-md rounded-lg p-6 flex-1">
       <h2 className="text-2xl font-semibold text-blue-700 mb-4">
-        🎛️ Produce Finished Goods
+        🎛️ Production
       </h2>
 
       {/* Finished Goods Search */}

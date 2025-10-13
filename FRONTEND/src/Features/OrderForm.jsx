@@ -1,14 +1,9 @@
 import { useState, useRef } from "react";
-import { FaSave, FaPrint, FaTimes, FaTrash } from "react-icons/fa";
+import { FaTrash } from "react-icons/fa";
 
 export default function OrderForm({ addNewOrder, onClose }) {
-  const ledgerList = ["ABC Traders", "XYZ Enterprises", "LMN Corp","SS Impex","Global Supplies",
-    "Crystal Distributions"
-  ];
+  const ledgerList = ["SS Impex", "Crystal Distributions", "ABC Traders", "XYZ Enterprises"];
   const itemList = [
-    { name: "Product A", rate: 100, unit: "Nos" },
-    { name: "Product B", rate: 200, unit: "Kg" },
-    { name: "Product C", rate: 150, unit: "Set" },
     { name: "Durofill GL-250 400gm", rate: 840, unit: "Nos" },
     { name: "Durofill Gel 400gm", rate: 860, unit: "Nos" },
     { name: "Durofill GL-250 1500gm", rate: 2525, unit: "Nos" },
@@ -17,20 +12,49 @@ export default function OrderForm({ addNewOrder, onClose }) {
   ];
 
   const [ledger, setLedger] = useState("");
+  const [ledgerSearch, setLedgerSearch] = useState("");
+  const [ledgerDropdown, setLedgerDropdown] = useState(false);
+  const [ledgerActiveIndex, setLedgerActiveIndex] = useState(0);
+
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [billNo, setBillNo] = useState(Math.floor(Math.random() * 10000));
+
   const [items, setItems] = useState([{ name: "", qty: 0, rate: 0, unit: "Nos" }]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeItemIndex, setActiveItemIndex] = useState(null);
+  const [itemDropdownIndex, setItemDropdownIndex] = useState(null);
+  const [discount, setDiscount] = useState(0);
 
-  const inputRefs = useRef([]);
+  const inputRefs = useRef({ ledger: null, items: [], discount: null });
 
+  // --- Calculations ---
   const subtotal = items.reduce((acc, i) => acc + i.qty * i.rate, 0);
   const tax = subtotal * 0.18;
-  const total =  subtotal + tax;
- 
-  const handleChange = (index, field, value) => {
+  const beforeDiscount = subtotal + tax;
+  const afterDiscount = beforeDiscount - discount;
+  const roundOff = Math.round(afterDiscount) - afterDiscount;
+  const total = afterDiscount + roundOff;
+
+  // --- Filters ---
+  const filteredLedger = ledgerList.filter((l) =>
+    l.toLowerCase().includes(ledgerSearch.toLowerCase())
+  );
+  const filteredItems = itemList.filter((i) =>
+    i.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // --- Ledger Selection ---
+  const selectLedger = (name) => {
+    setLedger(name);
+    setLedgerSearch("");
+    setLedgerDropdown(false);
+    inputRefs.current.items[0]?.name?.focus();
+  };
+
+  // --- Item Editing ---
+  const handleItemChange = (index, field, value) => {
     const updated = [...items];
     updated[index][field] = field === "qty" || field === "rate" ? Number(value) : value;
-
     if (field === "name") {
       const item = itemList.find((it) => it.name === value);
       if (item) {
@@ -38,208 +62,276 @@ export default function OrderForm({ addNewOrder, onClose }) {
         updated[index].unit = item.unit;
       }
     }
-
     setItems(updated);
   };
 
   const addRow = () => {
-    setItems([...items, { name: "", qty: 0, rate: 0, unit: "Nos" }]);
+    setItems((prev) => {
+      const newItems = [...prev, { name: "", qty: 0, rate: 0, unit: "Nos" }];
+      setTimeout(() => {
+        const newIndex = newItems.length - 1;
+        inputRefs.current.items[newIndex]?.name?.focus();
+      }, 50);
+      return newItems;
+    });
   };
 
-  const removeRow = (index) => setItems(items.filter((_, i) => i !== index));
+  const removeRow = (index) => {
+    setItems(items.filter((_, i) => i !== index));
+  };
 
   const handlePlaceOrder = () => {
-    if (!ledger.trim()) return alert("Please enter a ledger name!");
-    const filteredItems = items.filter((i) => i.name);
-    if (filteredItems.length === 0) return alert("Please add at least one item!");
-    const order = { ledger, date, billNo, items: filteredItems, subtotal, tax, total };
+    if (!ledger.trim()) return alert("Please select a ledger!");
+    const filledItems = items.filter((i) => i.name);
+    if (filledItems.length === 0) return alert("Please add at least one item!");
+
+    const order = {
+      ledger,
+      date,
+      billNo,
+      items: filledItems,
+      subtotal,
+      tax,
+      discount,
+      roundOff,
+      total,
+    };
+
     addNewOrder(order);
     alert("✅ Order placed successfully!");
+
+    // Ask for print confirmation (like Tally)
+    const wantPrint = window.confirm("🖨️ Do you want to print this invoice?");
+    if (wantPrint) {
+      window.print();
+    }
+
     resetForm();
-    if (onClose) onClose();
+    onClose && onClose();
   };
 
   const resetForm = () => {
     setLedger("");
+    setDiscount(0);
     setBillNo(Math.floor(Math.random() * 10000));
-    setItems([{ name: "", qty: 1, rate: 0, unit: "Nos" }]);
-    inputRefs.current = [];
+    setItems([{ name: "", qty: 0, rate: 0, unit: "Nos" }]);
+    inputRefs.current.items = [];
   };
 
-  const handleKeyDown = (e, idx, field) => {
-    if (e.key !== "Enter") return;
+  // --- Keyboard Navigation ---
+  const handleLedgerKeyDown = (e) => {
+    if (!ledgerDropdown) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setLedgerActiveIndex((prev) => (prev + 1) % filteredLedger.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setLedgerActiveIndex((prev) => (prev - 1 + filteredLedger.length) % filteredLedger.length);
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (filteredLedger[ledgerActiveIndex]) {
+        selectLedger(filteredLedger[ledgerActiveIndex]);
+      }
+    } else if (e.key === "Escape") {
+      setLedgerDropdown(false);
+    }
+  };
 
+  const handleItemKeyDown = (e, idx, field) => {
     if (field === "name") {
-      inputRefs.current[idx].qty.focus();
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setItemDropdownIndex((prev) =>
+          prev === null ? 0 : (prev + 1) % filteredItems.length
+        );
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setItemDropdownIndex((prev) =>
+          prev === null ? filteredItems.length - 1 : (prev - 1 + filteredItems.length) % filteredItems.length
+        );
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        if (itemDropdownIndex !== null && filteredItems[itemDropdownIndex]) {
+          handleItemChange(idx, "name", filteredItems[itemDropdownIndex].name);
+        }
+        setSearchTerm("");
+        setActiveItemIndex(null);
+        setItemDropdownIndex(null);
+        inputRefs.current.items[idx].qty.focus();
+      }
     } else if (field === "qty") {
-      inputRefs.current[idx].rate.focus();
+      if (e.key === "Enter") inputRefs.current.items[idx].rate.focus();
     } else if (field === "rate") {
-      const current = items[idx];
-      if (current.name || current.qty || current.rate) {
-        addRow();
-        setTimeout(() => {
-          const newIndex = items.length;
-          inputRefs.current[newIndex].name.focus();
-        }, 50);
-      } else {
-        handlePlaceOrder();
+      if (e.key === "Enter") {
+        const current = items[idx];
+        if (current.name || current.qty || current.rate) {
+          addRow();
+        } else {
+          inputRefs.current.discount.focus();
+        }
       }
     }
   };
 
+  const handleDiscountKeyDown = (e) => {
+    if (e.key === "Enter") handlePlaceOrder();
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 p-6">
+    <div className="min-h-screen bg-gray-100 text-gray-800 p-4">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6 border-b pb-3">
-        <h1 className="text-3xl font-bold text-gray-800">🧾 Sales Voucher Entry</h1>
-        <div className="flex gap-3">
-          <button
-            onClick={handlePlaceOrder}
-            className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg shadow"
-          >
-            <FaSave /> Place Order
-          </button>
-          <button
-            onClick={() => window.print()}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg shadow"
-          >
-            <FaPrint /> Print
-          </button>
-          <button
-            onClick={onClose}
-            className="flex items-center gap-2 bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded-lg shadow"
-          >
-            <FaTimes /> Close
-          </button>
-        </div>
+      <div className="flex justify-between items-center mb-4 border-b border-gray-400 pb-2">
+        <h1 className="text-2xl font-semibold text-gray-800 tracking-wide">Sales Voucher Entry</h1>
       </div>
 
-      {/* Voucher Info */}
-      <div className="grid grid-cols-3 gap-6 bg-white p-5 rounded-xl shadow border mb-6">
-        <div>
-          <label className="block font-semibold mb-1 text-gray-700">Ledger Name:</label>
+      {/* Ledger Section */}
+      <div className="grid grid-cols-3 gap-4 bg-white border border-gray-300 p-3 mb-4 text-sm">
+        <div className="relative">
+          <label className="font-medium text-gray-700">Ledger:</label>
           <input
-            list="ledger-list"
             type="text"
-            value={ledger}
-            onChange={(e) => setLedger(e.target.value)}
-            placeholder="Enter party name"
-            className="border rounded px-3 py-2 w-full focus:ring focus:ring-blue-200"
+            value={ledgerSearch || ledger}
+            onFocus={() => setLedgerDropdown(true)}
+            onChange={(e) => {
+              setLedgerSearch(e.target.value);
+              setLedgerDropdown(true);
+            }}
+            onKeyDown={handleLedgerKeyDown}
+            ref={(el) => (inputRefs.current.ledger = el)}
+            className="border border-gray-400 px-2 py-1 w-full focus:outline-blue-500"
+            placeholder="Select ledger..."
           />
-          <datalist id="ledger-list">
-            {ledgerList.map((l, idx) => (
-              <option key={idx} value={l} />
-            ))}
-          </datalist>
+          {ledgerDropdown && (ledgerSearch || !ledger) && (
+            <div className="absolute z-10 bg-white border border-gray-300 w-full mt-1 max-h-40 overflow-y-auto">
+              {filteredLedger.length > 0 ? (
+                filteredLedger.map((l, i) => (
+                  <div
+                    key={i}
+                    onClick={() => selectLedger(l)}
+                    className={`px-2 py-1 cursor-pointer ${
+                      i === ledgerActiveIndex ? "bg-yellow-100" : "hover:bg-gray-100"
+                    }`}
+                  >
+                    {l}
+                  </div>
+                ))
+              ) : (
+                <div className="px-2 py-1 text-gray-400">No results</div>
+              )}
+            </div>
+          )}
         </div>
+
         <div>
-          <label className="block font-semibold mb-1 text-gray-700">Date:</label>
+          <label className="font-medium text-gray-700">Date:</label>
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="border rounded px-3 py-2 w-full focus:ring focus:ring-blue-200"
+            className="border border-gray-400 px-2 py-1 w-full focus:outline-blue-500"
           />
         </div>
+
         <div>
-          <label className="block font-semibold mb-1 text-gray-700">Bill No:</label>
+          <label className="font-medium text-gray-700">Bill No:</label>
           <input
             type="text"
             value={billNo}
             onChange={(e) => setBillNo(e.target.value)}
-            className="border rounded px-3 py-2 w-full focus:ring focus:ring-blue-200"
+            className="border border-gray-400 px-2 py-1 w-full focus:outline-blue-500"
           />
         </div>
       </div>
 
       {/* Items Table */}
-      <div className="bg-white p-5 rounded-xl shadow border overflow-x-auto">
-        <table className="w-full text-sm border-collapse border border-gray-300">
-          <thead className="bg-gray-100">
+      <div className="bg-white border border-gray-300">
+        <table className="w-full text-sm border-collapse">
+          <thead className="bg-gray-200 border-b border-gray-300">
             <tr>
-              <th className="border px-2 py-2 text-center w-10">#</th>
-              <th className="border px-2 py-2 text-left">Item Name</th>
-              <th className="border px-2 py-2 text-center w-24">Qty</th>
-              <th className="border px-2 py-2 text-center w-24">Unit</th>
-              <th className="border px-2 py-2 text-center w-32">Rate</th>
-              <th className="border px-2 py-2 text-center w-32">Amount</th>
-              <th className="border px-2 py-2 text-center w-16">Action</th>
+              <th className="border border-gray-300 px-2 py-1 w-8 text-center">#</th>
+              <th className="border border-gray-300 px-2 py-1 text-left">Item Name</th>
+              <th className="border border-gray-300 px-2 py-1 w-20 text-center">Qty</th>
+              <th className="border border-gray-300 px-2 py-1 w-20 text-center">Unit</th>
+              <th className="border border-gray-300 px-2 py-1 w-24 text-center">Rate</th>
+              <th className="border border-gray-300 px-2 py-1 w-24 text-right">Amount</th>
+              <th className="border border-gray-300 px-2 py-1 w-10 text-center">X</th>
             </tr>
           </thead>
           <tbody>
             {items.map((item, idx) => (
-              <tr key={idx} className="hover:bg-gray-50">
+              <tr key={idx} className="hover:bg-gray-50 relative">
                 <td className="border px-2 py-1 text-center">{idx + 1}</td>
-                <td className="border px-2 py-1">
+                <td className="border px-2 py-1 relative">
                   <input
-                    list="item-list"
-                    ref={(el) =>
-                      (inputRefs.current[idx] = {
-                        name: el,
-                        qty: inputRefs.current[idx]?.qty,
-                        rate: inputRefs.current[idx]?.rate,
-                      })
-                    }
                     type="text"
                     value={item.name}
-                    onChange={(e) => handleChange(idx, "name", e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(e, idx, "name")}
+                    onFocus={() => setActiveItemIndex(idx)}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      handleItemChange(idx, "name", e.target.value);
+                      setItemDropdownIndex(null);
+                    }}
+                    onKeyDown={(e) => handleItemKeyDown(e, idx, "name")}
                     className="w-full border-none outline-none"
-                    placeholder="Item name"
-                  />
-                </td>
-                <td className="border px-2 py-1 text-center">
-                  <input
+                    placeholder="Search item..."
                     ref={(el) =>
-                      (inputRefs.current[idx] = {
-                        ...inputRefs.current[idx],
-                        qty: el,
+                      (inputRefs.current.items[idx] = {
+                        ...inputRefs.current.items[idx],
+                        name: el,
                       })
                     }
+                  />
+                  {activeItemIndex === idx && searchTerm && (
+                    <div className="absolute bg-white border border-gray-300 w-full z-10 mt-1 max-h-40 overflow-y-auto">
+                      {filteredItems.length > 0 ? (
+                        filteredItems.map((it, i) => (
+                          <div
+                            key={i}
+                            onClick={() => {
+                              handleItemChange(idx, "name", it.name);
+                              setSearchTerm("");
+                              setActiveItemIndex(null);
+                              inputRefs.current.items[idx].qty.focus();
+                            }}
+                            className={`px-2 py-1 cursor-pointer ${
+                              i === itemDropdownIndex ? "bg-yellow-100" : "hover:bg-gray-100"
+                            }`}
+                          >
+                            {it.name}
+                          </div>
+                        ))
+                      ) : (
+                        <div className="px-2 py-1 text-gray-400">No items</div>
+                      )}
+                    </div>
+                  )}
+                </td>
+                <td className="border text-center px-1">
+                  <input
                     type="number"
-                    min="1"
+                    min="0"
                     value={item.qty}
-                    onChange={(e) => handleChange(idx, "qty", e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(e, idx, "qty")}
-                    className="w-16 text-center border rounded px-1"
+                    onChange={(e) => handleItemChange(idx, "qty", e.target.value)}
+                    onKeyDown={(e) => handleItemKeyDown(e, idx, "qty")}
+                    className="w-16 text-center border border-gray-400 px-1"
+                    ref={(el) => (inputRefs.current.items[idx].qty = el)}
                   />
                 </td>
-                <td className="border px-2 py-1 text-center">
-                  <select
-                    value={item.unit}
-                    onChange={(e) => handleChange(idx, "unit", e.target.value)}
-                    className="border rounded px-2 py-1"
-                  >
-                    <option value="Nos">Nos</option>
-                    <option value="Kg">Kg</option>
-                    <option value="Set">Set</option>
-                    <option value="Roll">Roll</option>
-                  </select>
-                </td>
-                <td className="border px-2 py-1 text-center">
+                <td className="border text-center">{item.unit}</td>
+                <td className="border text-center px-1">
                   <input
-                    ref={(el) =>
-                      (inputRefs.current[idx] = {
-                        ...inputRefs.current[idx],
-                        rate: el,
-                      })
-                    }
                     type="number"
                     min="0"
                     value={item.rate}
-                    onChange={(e) => handleChange(idx, "rate", e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(e, idx, "rate")}
-                    className="w-24 text-center border rounded px-1"
+                    onChange={(e) => handleItemChange(idx, "rate", e.target.value)}
+                    onKeyDown={(e) => handleItemKeyDown(e, idx, "rate")}
+                    className="w-20 text-center border border-gray-400 px-1"
+                    ref={(el) => (inputRefs.current.items[idx].rate = el)}
                   />
                 </td>
-                <td className="border px-2 py-1 text-right pr-3">
-                  {(item.qty * item.rate).toFixed(2)}
-                </td>
-                <td className="border px-2 py-1 text-center">
-                  <button
-                    onClick={() => removeRow(idx)}
-                    className="text-red-500 hover:text-red-700"
-                  >
+                <td className="border text-right px-2">{(item.qty * item.rate).toFixed(2)}</td>
+                <td className="border text-center">
+                  <button onClick={() => removeRow(idx)} className="text-red-600 hover:text-red-800">
                     <FaTrash />
                   </button>
                 </td>
@@ -250,27 +342,33 @@ export default function OrderForm({ addNewOrder, onClose }) {
       </div>
 
       {/* Totals */}
-      <div className="flex justify-end mt-6">
-        <div className="bg-white rounded-xl shadow border p-5 w-80 space-y-2 text-right text-gray-800">
+      <div className="flex justify-end mt-4">
+        <div className="bg-white border border-gray-300 p-3 w-80 text-sm space-y-1 text-right">
+          <p>Subtotal: ₹{subtotal.toFixed(2)}</p>
+          <p>Tax (18%): ₹{tax.toFixed(2)}</p>
           <p>
-            Subtotal: <span className="font-semibold">₹{subtotal.toFixed(2)}</span>
+            Discount:
+            <input
+              type="number"
+              value={discount}
+              onChange={(e) => setDiscount(Number(e.target.value))}
+              onKeyDown={handleDiscountKeyDown}
+              ref={(el) => (inputRefs.current.discount = el)}
+              className="border border-gray-400 text-right px-1 ml-2 w-20"
+            />
           </p>
           <p>
-            Tax (18%): <span className="font-semibold">₹{tax.toFixed(2)}</span>
+            Round Off:
+            <span className={`ml-2 ${roundOff > 0 ? "text-green-600" : "text-red-600"}`}>
+              {roundOff > 0 ? "+" : ""}
+              {roundOff.toFixed(2)}
+            </span>
           </p>
-          <p className="text-lg font-bold">
-            Total: <span className="text-blue-700">₹{total.toFixed(2)}</span>
+          <p className="font-semibold border-t border-gray-400 pt-2 text-lg">
+            Total: ₹{total.toFixed(2)}
           </p>
         </div>
       </div>
-
-      {/* Datalist */}
-      <datalist id="item-list">
-        {itemList.map((i, idx) => (
-          <option key={idx} value={i.name} />
-        ))}
-      </datalist>
     </div>
   );
 }
-
