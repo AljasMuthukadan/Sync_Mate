@@ -13,8 +13,8 @@ export default function EditBOM({ product, bom, setBOM, items, onClose }) {
   };
 
   return (
-    <div className="bg-gray-50 shadow rounded-lg p-4 mt-4">
-      <h3 className="text-lg font-semibold mb-3 text-blue-700">
+    <div className="bg-gray-50 border border-gray-300 rounded-md p-5 w-full max-w-lg mx-auto mt-4">
+      <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">
         Edit BOM - {product}
       </h3>
 
@@ -27,12 +27,12 @@ export default function EditBOM({ product, bom, setBOM, items, onClose }) {
 
         return (
           <div key={idx} className="flex gap-2 mb-2 items-center relative">
-            {/* Raw material search with autocomplete */}
+            {/* Material Input */}
             <div className="flex-1 relative">
               <input
                 type="text"
                 value={mat.name}
-                placeholder="Search material..."
+                placeholder="Material name"
                 onFocus={() => {
                   setSearchIndex(idx);
                   setHighlightedIndex(-1);
@@ -66,35 +66,35 @@ export default function EditBOM({ product, bom, setBOM, items, onClose }) {
                     setSearchIndex(null);
                   }
                 }}
-                className="border px-2 py-1 rounded w-full"
+                className="border border-gray-300 rounded px-2 py-1 w-full text-sm outline-none focus:ring-1 focus:ring-blue-300"
               />
 
-              {/* Suggestion Dropdown */}
+              {/* Suggestions Dropdown */}
               {searchIndex === idx && mat.name && suggestions.length > 0 && (
-                <ul className="absolute bg-white border rounded w-full max-h-32 overflow-y-auto z-10">
-                  {suggestions.map((suggestion, sIdx) => (
+                <ul className="absolute bg-white border border-gray-300 rounded w-full max-h-32 overflow-y-auto z-10 text-sm">
+                  {suggestions.map((s, sIdx) => (
                     <li
-                      key={suggestion.id}
+                      key={s.id}
                       onClick={() => {
                         const newMats = [...editingMaterials];
-                        newMats[idx].name = suggestion.name;
+                        newMats[idx].name = s.name;
                         setEditingMaterials(newMats);
                         setSearchIndex(null);
                       }}
                       className={`px-2 py-1 cursor-pointer ${
                         highlightedIndex === sIdx
-                          ? "bg-blue-200"
-                          : "hover:bg-blue-100"
+                          ? "bg-gray-200 font-medium"
+                          : "hover:bg-gray-100"
                       }`}
                     >
-                      {suggestion.name}
+                      {s.name}
                     </li>
                   ))}
                 </ul>
               )}
             </div>
 
-            {/* Quantity */}
+            {/* Quantity Input */}
             <input
               type="number"
               value={mat.qty}
@@ -103,14 +103,15 @@ export default function EditBOM({ product, bom, setBOM, items, onClose }) {
                 newMats[idx].qty = Number(e.target.value);
                 setEditingMaterials(newMats);
               }}
-              className="border px-2 py-1 rounded w-24"
+              className="border border-gray-300 rounded px-2 py-1 w-20 text-sm outline-none focus:ring-1 focus:ring-blue-300"
             />
 
+            {/* Delete Button */}
             <button
               onClick={() =>
                 setEditingMaterials(editingMaterials.filter((_, i) => i !== idx))
               }
-              className="bg-red-500 text-white px-2 py-1 rounded"
+              className="bg-gray-300 text-gray-800 px-2 py-1 rounded hover:bg-gray-400 text-sm"
             >
               Delete
             </button>
@@ -118,25 +119,25 @@ export default function EditBOM({ product, bom, setBOM, items, onClose }) {
         );
       })}
 
+      {/* Add Material */}
       <button
-        onClick={() =>
-          setEditingMaterials([...editingMaterials, { name: "", qty: 1 }])
-        }
-        className="bg-blue-500 text-white px-3 py-1 rounded mb-2"
+        onClick={() => setEditingMaterials([...editingMaterials, { name: "", qty: 1 }])}
+        className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-500 mb-3"
       >
         + Add Material
       </button>
 
-      <div className="flex gap-2">
+      {/* Action Buttons */}
+      <div className="flex gap-2 justify-end">
         <button
           onClick={saveBOM}
-          className="bg-green-600 text-white px-4 py-2 rounded"
+          className="bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-500"
         >
-          Save BOM
+          Save
         </button>
         <button
           onClick={onClose}
-          className="bg-gray-400 text-white px-4 py-2 rounded"
+          className="bg-gray-400 text-white px-4 py-2 rounded text-sm hover:bg-gray-500"
         >
           Cancel
         </button>

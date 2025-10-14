@@ -1,3 +1,5 @@
+import { FaEdit, FaTrash } from "react-icons/fa";
+
 export default function ItemCard({ item, startEdit, deleteItem }) {
   const lowStock = item.quantity < 5;
   const categoryColors = {
@@ -5,6 +7,7 @@ export default function ItemCard({ item, startEdit, deleteItem }) {
     "Raw Materials": "bg-yellow-100 text-yellow-800",
     "Work in Progress": "bg-purple-100 text-purple-800",
   };
+
   const stockColors =
     item.quantity === 0
       ? "bg-red-100 text-red-700"
@@ -33,28 +36,39 @@ export default function ItemCard({ item, startEdit, deleteItem }) {
       <h4 className="text-lg font-semibold text-blue-700">{item.name}</h4>
 
       {/* Badges */}
-      <div className="flex gap-2 mt-2 mb-2">
-        <span className={`px-3 py-1 text-sm font-medium rounded-full ${categoryColors[item.category] || "bg-gray-100 text-gray-700"}`}>
+      <div className="flex gap-2 mt-2 mb-3">
+        <span
+          className={`px-3 py-1 text-sm font-medium rounded-full ${
+            categoryColors[item.category] || "bg-gray-100 text-gray-700"
+          }`}
+        >
           {item.category}
         </span>
-        <span className={`px-3 py-1 text-sm font-medium rounded-full ${stockColors}`}>
+        <span
+          className={`px-3 py-1 text-sm font-medium rounded-full ${stockColors}`}
+        >
           Stock: {item.quantity}
         </span>
       </div>
 
       {/* Actions */}
-      <div className="flex gap-2 mt-2 w-full">
+      <div className="flex gap-3 mt-auto w-full">
+        {/* Edit Button */}
         <button
           onClick={() => startEdit(item)}
-          className="flex-1 bg-yellow-500 text-white py-2 rounded hover:bg-yellow-400 transition"
+          className="flex-1 flex items-center justify-center gap-2 border-2 border-blue-500 text-blue-600 py-2 rounded-lg hover:bg-blue-500 hover:text-white transition-all active:scale-95 shadow-sm"
         >
-          Edit
+          <FaEdit className="text-base" />
+          <span className="font-medium">Edit</span>
         </button>
+
+        {/* Delete Button */}
         <button
           onClick={() => deleteItem(item.id)}
-          className="flex-1 bg-red-600 text-white py-2 rounded hover:bg-red-500 transition"
+          className="flex-1 flex items-center justify-center gap-2 border-2 border-red-500 text-red-600 py-2 rounded-lg hover:bg-red-500 hover:text-white transition-all active:scale-95 shadow-sm"
         >
-          Delete
+          <FaTrash className="text-base" />
+          <span className="font-medium">Delete</span>
         </button>
       </div>
     </div>

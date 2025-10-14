@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { FaSearch, FaPlus, FaTimes } from "react-icons/fa";
 import ItemForm from "../Features/ItemForm.jsx";
+import ItemCard from "../Features/ItemCard.jsx";
 
 export default function ItemsSection() {
   const [items, setItems] = useState([
@@ -76,44 +78,59 @@ export default function ItemsSection() {
   const categories = ["All", "Finished Goods", "Raw Materials", "Work in Progress"];
 
   return (
-    <div className="space-y-6">
-      {/* Search + Category Pills */}
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-        <input
-          type="text"
-          placeholder="Search items..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="px-3 py-2 border rounded-lg shadow-sm w-full md:w-64"
-        />
+    <div className="space-y-8">
+      {/* 🔍 Top Filter Bar */}
+      <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+        {/* Search Box */}
+        <div className="relative w-full md:w-72">
+          <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search items..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-10 pr-3 py-2 w-full rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm hover:shadow-md transition"
+          />
+        </div>
 
-        <div className="flex flex-wrap gap-2">
+        {/* Category Filter Pills */}
+        <div className="flex flex-wrap justify-center gap-3">
           {categories.map((cat) => {
             const count = cat === "All" ? items.length : items.filter((i) => i.category === cat).length;
+            const selected = categoryFilter === cat;
 
             return (
               <button
                 key={cat}
                 onClick={() => setCategoryFilter(cat)}
-                className={`px-4 py-1 rounded-full font-semibold flex items-center gap-2 transition ${
-                  categoryFilter === cat
-                    ? "bg-blue-600 text-white shadow"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                className={`relative flex items-center gap-2 px-4 py-1.5 rounded-full font-semibold transition-all transform active:scale-95 ${
+                  selected
+                    ? "bg-blue-600 text-white shadow-md scale-105"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
-                {cat}
-                <span className="bg-white text-gray-800 px-2 py-0.5 rounded-full text-sm font-medium shadow">
+                <span>{cat}</span>
+                <span
+                  className={`text-xs px-2 py-0.5 rounded-full ${
+                    selected ? "bg-white text-blue-600" : "bg-gray-300 text-gray-700"
+                  }`}
+                >
                   {count}
                 </span>
+                {selected && (
+                  <span className="absolute -inset-0.5 bg-blue-500 opacity-20 blur-lg rounded-full animate-pulse"></span>
+                )}
               </button>
             );
           })}
         </div>
 
+        {/* Add Item Button */}
         <button
           onClick={() => setShowForm(!showForm)}
-          className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-500"
+          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-500 active:scale-95 transition-all"
         >
+          {showForm ? <FaTimes /> : <FaPlus />}
           {showForm ? "Close Form" : "Add Item"}
         </button>
       </div>
@@ -129,63 +146,19 @@ export default function ItemsSection() {
         />
       )}
 
-      {/* Items Grid */}
+      {/* 🧱 Items Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {filteredItems.length === 0 && (
-          <div className="col-span-full text-center text-gray-500 p-6">No items found</div>
-        )}
-        {filteredItems.map((item) => (
-          <div
-            key={item.id}
-            className="bg-white shadow-md rounded-lg p-4 flex flex-col items-center hover:shadow-xl transition transform hover:-translate-y-1"
-          >
-            <div className="w-28 h-28 mb-3 overflow-hidden rounded">
-              {item.image ? (
-                <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400">
-                  No Image
-                </div>
-              )}
-            </div>
-            <h4 className="text-lg font-semibold text-blue-700">{item.name}</h4>
-
-            {/* Badges */}
-            <div className="flex gap-2 mt-1 mb-2 flex-wrap justify-center">
-              <span
-                className={`px-2 py-1 text-xs font-medium rounded-full ${
-                  item.category === "Finished Goods" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"
-                }`}
-              >
-                {item.category}
-              </span>
-              <span
-                className={`px-2 py-1 text-xs font-medium rounded-full ${
-                  item.quantity < 5 ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-700"
-                }`}
-              >
-                {item.quantity} {item.unit}
-              </span>
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-2 mt-2 w-full">
-              <button
-                onClick={() => startEdit(item)}
-                className="flex-1 bg-yellow-500 text-white py-1 rounded hover:bg-yellow-400 transition"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => deleteItem(item.id)}
-                className="flex-1 bg-red-600 text-white py-1 rounded hover:bg-red-500 transition"
-              >
-                Delete
-              </button>
-            </div>
+        {filteredItems.length === 0 ? (
+          <div className="col-span-full text-center text-gray-500 p-6 bg-gray-50 rounded-lg">
+            No items found
           </div>
-        ))}
+        ) : (
+          filteredItems.map((item) => (
+            <ItemCard key={item.id} item={item} startEdit={startEdit} deleteItem={deleteItem} />
+          ))
+        )}
       </div>
     </div>
   );
 }
+
