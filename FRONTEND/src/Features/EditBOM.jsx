@@ -1,145 +1,122 @@
-import { useState } from "react";
+ import { useState } from "react";
+import { FaSave, FaPlus, FaTrash, FaCogs } from "react-icons/fa";
 
 export default function EditBOM({ product, bom, setBOM, items, onClose }) {
-  const [editingMaterials, setEditingMaterials] = useState(
-    bom[product] ? [...bom[product]] : []
-  );
-  const [searchIndex, setSearchIndex] = useState(null); // which row is being searched
-  const [highlightedIndex, setHighlightedIndex] = useState(-1); // for arrow navigation
+  const rawMaterials = items.filter((i) => i.category === "Raw Materials");
+  const existingBOM = bom[product] || [];
 
-  const saveBOM = () => {
-    setBOM({ ...bom, [product]: editingMaterials });
+  const [materials, setMaterials] = useState([...existingBOM]);
+
+  const handleMaterialChange = (index, field, value) => {
+    const updated = [...materials];
+    updated[index][field] = value;
+    setMaterials(updated);
+  };
+
+  const handleAddMaterial = () => {
+    setMaterials([...materials, { name: "", qty: 0 }]);
+  };
+
+  const handleRemoveMaterial = (index) => {
+    const updated = materials.filter((_, i) => i !== index);
+    setMaterials(updated);
+  };
+
+  const handleSave = () => {
+    const filtered = materials.filter(
+      (m) => m.name.trim() !== "" && m.qty > 0
+    );
+    if (filtered.length === 0) {
+      alert("Please add at least one valid material!");
+      return;
+    }
+    setBOM({ ...bom, [product]: filtered });
     onClose();
   };
 
   return (
-    <div className="bg-gray-50 border border-gray-300 rounded-md p-5 w-full max-w-lg mx-auto mt-4">
-      <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">
-        Edit BOM - {product}
-      </h3>
+    <div className="bg-white border border-gray-200 rounded-2xl shadow-lg p-6 w-full mt-4">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-5">
+        <h3 className="text-2xl font-semibold text-blue-700 flex items-center gap-2">
+          <FaCogs /> Edit BOM – <span className="text-gray-800">{product}</span>
+        </h3>
+        <button
+          onClick={onClose}
+          className="text-gray-500 hover:text-gray-700 font-bold text-lg"
+        >
+          ✕
+        </button>
+      </div>
 
-      {editingMaterials.map((mat, idx) => {
-        const suggestions = items
-          .filter((i) => i.category === "Raw Materials")
-          .filter((i) =>
-            i.name.toLowerCase().includes(mat.name.toLowerCase())
-          );
+      {/* Materials Table */}
+      <div className="space-y-3 max-h-[45vh] overflow-y-auto pr-1">
+        {materials.map((mat, index) => (
+          <div
+            key={index}
+            className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center bg-gray-50 p-3 rounded-xl shadow-sm border border-gray-200"
+          >
+            {/* Material Name */}
+            <select
+              value={mat.name}
+              onChange={(e) =>
+                handleMaterialChange(index, "name", e.target.value)
+              }
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none"
+            >
+              <option value="">Select Material</option>
+              {rawMaterials.map((rm) => (
+                <option key={rm.id} value={rm.name}>
+                  {rm.name}
+                </option>
+              ))}
+            </select>
 
-        return (
-          <div key={idx} className="flex gap-2 mb-2 items-center relative">
-            {/* Material Input */}
-            <div className="flex-1 relative">
-              <input
-                type="text"
-                value={mat.name}
-                placeholder="Material name"
-                onFocus={() => {
-                  setSearchIndex(idx);
-                  setHighlightedIndex(-1);
-                }}
-                onChange={(e) => {
-                  const newMats = [...editingMaterials];
-                  newMats[idx].name = e.target.value;
-                  setEditingMaterials(newMats);
-                  setSearchIndex(idx);
-                  setHighlightedIndex(-1);
-                }}
-                onKeyDown={(e) => {
-                  if (searchIndex !== idx) return;
-                  if (e.key === "ArrowDown") {
-                    e.preventDefault();
-                    setHighlightedIndex((prev) =>
-                      prev < suggestions.length - 1 ? prev + 1 : 0
-                    );
-                  } else if (e.key === "ArrowUp") {
-                    e.preventDefault();
-                    setHighlightedIndex((prev) =>
-                      prev > 0 ? prev - 1 : suggestions.length - 1
-                    );
-                  } else if (e.key === "Enter" && highlightedIndex >= 0) {
-                    e.preventDefault();
-                    const newMats = [...editingMaterials];
-                    newMats[idx].name = suggestions[highlightedIndex].name;
-                    setEditingMaterials(newMats);
-                    setSearchIndex(null);
-                  } else if (e.key === "Escape") {
-                    setSearchIndex(null);
-                  }
-                }}
-                className="border border-gray-300 rounded px-2 py-1 w-full text-sm outline-none focus:ring-1 focus:ring-blue-300"
-              />
-
-              {/* Suggestions Dropdown */}
-              {searchIndex === idx && mat.name && suggestions.length > 0 && (
-                <ul className="absolute bg-white border border-gray-300 rounded w-full max-h-32 overflow-y-auto z-10 text-sm">
-                  {suggestions.map((s, sIdx) => (
-                    <li
-                      key={s.id}
-                      onClick={() => {
-                        const newMats = [...editingMaterials];
-                        newMats[idx].name = s.name;
-                        setEditingMaterials(newMats);
-                        setSearchIndex(null);
-                      }}
-                      className={`px-2 py-1 cursor-pointer ${
-                        highlightedIndex === sIdx
-                          ? "bg-gray-200 font-medium"
-                          : "hover:bg-gray-100"
-                      }`}
-                    >
-                      {s.name}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            {/* Quantity Input */}
+            {/* Quantity */}
             <input
               type="number"
               value={mat.qty}
-              onChange={(e) => {
-                const newMats = [...editingMaterials];
-                newMats[idx].qty = Number(e.target.value);
-                setEditingMaterials(newMats);
-              }}
-              className="border border-gray-300 rounded px-2 py-1 w-20 text-sm outline-none focus:ring-1 focus:ring-blue-300"
+              onChange={(e) =>
+                handleMaterialChange(index, "qty", Number(e.target.value))
+              }
+              placeholder="Qty"
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none"
             />
 
             {/* Delete Button */}
             <button
-              onClick={() =>
-                setEditingMaterials(editingMaterials.filter((_, i) => i !== idx))
-              }
-              className="bg-gray-300 text-gray-800 px-2 py-1 rounded hover:bg-gray-400 text-sm"
+              onClick={() => handleRemoveMaterial(index)}
+              className="flex items-center justify-center gap-2 text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-lg py-2 transition"
             >
-              Delete
+              <FaTrash /> Remove
             </button>
           </div>
-        );
-      })}
+        ))}
 
-      {/* Add Material */}
-      <button
-        onClick={() => setEditingMaterials([...editingMaterials, { name: "", qty: 1 }])}
-        className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-500 mb-3"
-      >
-        + Add Material
-      </button>
+        {materials.length === 0 && (
+          <p className="text-gray-500 text-sm italic text-center">
+            No materials added yet.
+          </p>
+        )}
+      </div>
 
-      {/* Action Buttons */}
-      <div className="flex gap-2 justify-end">
+      {/* Add Button */}
+      <div className="mt-5">
         <button
-          onClick={saveBOM}
-          className="bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-500"
+          onClick={handleAddMaterial}
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-lg text-sm font-semibold shadow transition"
         >
-          Save
+          <FaPlus /> Add Material
         </button>
+      </div>
+
+      {/* Save Button */}
+      <div className="mt-6 flex justify-end">
         <button
-          onClick={onClose}
-          className="bg-gray-400 text-white px-4 py-2 rounded text-sm hover:bg-gray-500"
+          onClick={handleSave}
+          className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg font-semibold shadow transition"
         >
-          Cancel
+          <FaSave /> Save BOM
         </button>
       </div>
     </div>
