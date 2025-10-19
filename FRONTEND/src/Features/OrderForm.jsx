@@ -2,16 +2,27 @@ import { useState, useRef } from "react";
 import { FaTrash } from "react-icons/fa";
 
 export default function OrderForm({ addNewOrder, onClose }) {
-  const ledgerList = ["SS Impex", "Crystal Distributions", "ABC Traders", "XYZ Enterprises"];
+  // Ledger list (you can later add address & GSTIN separately if needed)
+  const ledgerList = [
+    { name: "SS Impex", address: "123 MG Road, Chennai", gstin: "33AABCS1234F1ZV" },
+    { name: "Crystal Distributions", address: "45 Hill View, Coimbatore", gstin: "33AACCC2345G1ZR" },
+    { name: "KP Agencies", address: "78 Market Street, Madurai", gstin: "33AAACK3456L1ZS" },
+    { name: "Kallis Floorings", address: "22 Anna Nagar, Trichy", gstin: "33AADCK6789H1ZW" },
+    { name: "Sea Rock", address: "99 Beach Road, Tuticorin", gstin: "33AACSR9876M1ZP" },
+  ];
+
+  // 🆕 Added `stock` info for each item
   const itemList = [
-    { name: "Durofill GL-250 400gm", rate: 840, unit: "Nos" },
-    { name: "Durofill Gel 400gm", rate: 860, unit: "Nos" },
-    { name: "Durofill GL-250 1500gm", rate: 2525, unit: "Nos" },
-    { name: "Durofill Pigment Carbon Black 10gm", rate: 85, unit: "Nos" },
-    { name: "Durofill Pigment Porcelain White 40gm", rate: 275, unit: "Nos" },
+    { name: "Durofill GL-250 400gm", rate: 840, unit: "Nos", stock: "50 Nos" },
+    { name: "Durofill Gel 400gm", rate: 860, unit: "Nos", stock: "35 Nos" },
+    { name: "Durofill GL-250 1500gm", rate: 2525, unit: "Nos", stock: "12 Nos" },
+    { name: "Durofill Pigment Carbon Black 10gm", rate: 85, unit: "Nos", stock: "56 Nos" },
+    { name: "Durofill Pigment Porcelain White 40gm", rate: 275, unit: "Nos", stock: "180 Nos" },
   ];
 
   const [ledger, setLedger] = useState("");
+  const [ledgerAddress, setLedgerAddress] = useState("");
+  const [ledgerGSTIN, setLedgerGSTIN] = useState("");
   const [ledgerSearch, setLedgerSearch] = useState("");
   const [ledgerDropdown, setLedgerDropdown] = useState(false);
   const [ledgerActiveIndex, setLedgerActiveIndex] = useState(0);
@@ -37,7 +48,7 @@ export default function OrderForm({ addNewOrder, onClose }) {
 
   // --- Filters ---
   const filteredLedger = ledgerList.filter((l) =>
-    l.toLowerCase().includes(ledgerSearch.toLowerCase())
+    l.name.toLowerCase().includes(ledgerSearch.toLowerCase())
   );
   const filteredItems = itemList.filter((i) =>
     i.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -45,7 +56,12 @@ export default function OrderForm({ addNewOrder, onClose }) {
 
   // --- Ledger Selection ---
   const selectLedger = (name) => {
-    setLedger(name);
+    const selected = ledgerList.find((l) => l.name === name);
+    if (selected) {
+      setLedger(selected.name);
+      setLedgerAddress(selected.address);
+      setLedgerGSTIN(selected.gstin);
+    }
     setLedgerSearch("");
     setLedgerDropdown(false);
     inputRefs.current.items[0]?.name?.focus();
@@ -87,6 +103,8 @@ export default function OrderForm({ addNewOrder, onClose }) {
 
     const order = {
       ledger,
+      ledgerAddress,
+      ledgerGSTIN,
       date,
       billNo,
       items: filledItems,
@@ -100,11 +118,8 @@ export default function OrderForm({ addNewOrder, onClose }) {
     addNewOrder(order);
     alert("✅ Order placed successfully!");
 
-    // Ask for print confirmation (like Tally)
     const wantPrint = window.confirm("🖨️ Do you want to print this invoice?");
-    if (wantPrint) {
-      window.print();
-    }
+    if (wantPrint) window.print();
 
     resetForm();
     onClose && onClose();
@@ -112,6 +127,8 @@ export default function OrderForm({ addNewOrder, onClose }) {
 
   const resetForm = () => {
     setLedger("");
+    setLedgerAddress("");
+    setLedgerGSTIN("");
     setDiscount(0);
     setBillNo(Math.floor(Math.random() * 10000));
     setItems([{ name: "", qty: 0, rate: 0, unit: "Nos" }]);
@@ -130,7 +147,7 @@ export default function OrderForm({ addNewOrder, onClose }) {
     } else if (e.key === "Enter") {
       e.preventDefault();
       if (filteredLedger[ledgerActiveIndex]) {
-        selectLedger(filteredLedger[ledgerActiveIndex]);
+        selectLedger(filteredLedger[ledgerActiveIndex].name);
       }
     } else if (e.key === "Escape") {
       setLedgerDropdown(false);
@@ -193,6 +210,7 @@ export default function OrderForm({ addNewOrder, onClose }) {
             value={ledgerSearch || ledger}
             onFocus={() => setLedgerDropdown(true)}
             onChange={(e) => {
+              setLedger(e.target.value);
               setLedgerSearch(e.target.value);
               setLedgerDropdown(true);
             }}
@@ -207,12 +225,12 @@ export default function OrderForm({ addNewOrder, onClose }) {
                 filteredLedger.map((l, i) => (
                   <div
                     key={i}
-                    onClick={() => selectLedger(l)}
+                    onClick={() => selectLedger(l.name)}
                     className={`px-2 py-1 cursor-pointer ${
                       i === ledgerActiveIndex ? "bg-yellow-100" : "hover:bg-gray-100"
                     }`}
                   >
-                    {l}
+                    {l.name}
                   </div>
                 ))
               ) : (
@@ -243,24 +261,32 @@ export default function OrderForm({ addNewOrder, onClose }) {
         </div>
       </div>
 
-      {/* Items Table */}
+      {/* Show address and GSTIN */}
+      {ledger && ledgerAddress && (
+        <div className="bg-white border border-gray-300 p-3 mb-4 text-sm">
+          <p><span className="font-medium">Address:</span> {ledgerAddress}</p>
+          <p><span className="font-medium">GSTIN:</span> {ledgerGSTIN}</p>
+        </div>
+      )}
+
+      {/* --- ITEMS TABLE --- */}
       <div className="bg-white border border-gray-300">
         <table className="w-full text-sm border-collapse">
           <thead className="bg-gray-200 border-b border-gray-300">
             <tr>
-              <th className="border border-gray-300 px-2 py-1 w-8 text-center">#</th>
-              <th className="border border-gray-300 px-2 py-1 text-left">Item Name</th>
-              <th className="border border-gray-300 px-2 py-1 w-20 text-center">Qty</th>
-              <th className="border border-gray-300 px-2 py-1 w-20 text-center">Unit</th>
-              <th className="border border-gray-300 px-2 py-1 w-24 text-center">Rate</th>
-              <th className="border border-gray-300 px-2 py-1 w-24 text-right">Amount</th>
-              <th className="border border-gray-300 px-2 py-1 w-10 text-center">X</th>
+              <th className="border px-2 py-1 text-center w-8">#</th>
+              <th className="border px-2 py-1 text-left">Item Name</th>
+              <th className="border px-2 py-1 w-20 text-center">Qty</th>
+              <th className="border px-2 py-1 w-20 text-center">Unit</th>
+              <th className="border px-2 py-1 w-24 text-center">Rate</th>
+              <th className="border px-2 py-1 w-24 text-right">Amount</th>
+              <th className="border px-2 py-1 w-10 text-center">X</th>
             </tr>
           </thead>
           <tbody>
             {items.map((item, idx) => (
               <tr key={idx} className="hover:bg-gray-50 relative">
-                <td className="border px-2 py-1 text-center">{idx + 1}</td>
+                <td className="border text-center px-2 py-1">{idx + 1}</td>
                 <td className="border px-2 py-1 relative">
                   <input
                     type="text"
@@ -293,11 +319,13 @@ export default function OrderForm({ addNewOrder, onClose }) {
                               setActiveItemIndex(null);
                               inputRefs.current.items[idx].qty.focus();
                             }}
-                            className={`px-2 py-1 cursor-pointer ${
+                            className={`px-2 py-1 cursor-pointer flex justify-between ${
                               i === itemDropdownIndex ? "bg-yellow-100" : "hover:bg-gray-100"
                             }`}
                           >
-                            {it.name}
+                            <span>{it.name}</span>
+                            {/* 🆕 Stock info shown here */}
+                            <span className="text-gray-500 text-xs">{it.stock}</span>
                           </div>
                         ))
                       ) : (
@@ -306,7 +334,7 @@ export default function OrderForm({ addNewOrder, onClose }) {
                     </div>
                   )}
                 </td>
-                <td className="border text-center px-1">
+                <td className="border text-center">
                   <input
                     type="number"
                     min="0"
@@ -318,7 +346,7 @@ export default function OrderForm({ addNewOrder, onClose }) {
                   />
                 </td>
                 <td className="border text-center">{item.unit}</td>
-                <td className="border text-center px-1">
+                <td className="border text-center">
                   <input
                     type="number"
                     min="0"

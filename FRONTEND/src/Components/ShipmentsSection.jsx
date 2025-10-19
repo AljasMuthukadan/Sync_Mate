@@ -73,9 +73,12 @@ export default function ShipmentsSection() {
   const statusColor = (status) => {
     if (!status) return "text-gray-700";
     if (/delivered/i.test(status)) return "text-green-600 font-semibold";
-    if (/in transit|shipped|out for delivery/i.test(status))
+    if (/in transit|shipped/i.test(status))
       return "text-blue-600 font-medium";
-    if (/pending|not found/i.test(status)) return "text-orange-600 font-medium";
+    if (/out for delivery/i.test(status))
+      return "text-yellow-600 font-semibold";
+    if (/pending|not found/i.test(status))
+      return "text-orange-600 font-medium";
     return "text-gray-700";
   };
 
@@ -267,35 +270,86 @@ export default function ShipmentsSection() {
         </div>
       )}
 
-      {/* Status Popup */}
+      {/* ✅ Premium Status Popup */}
       {popupData && (
-        <div className="fixed inset-0 bg-black/50 flex justify-center items-start pt-20 z-50">
-          <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-xl relative">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-start pt-20 z-50 animate-fadeIn">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl relative overflow-hidden border border-gray-100">
+            {/* Close button */}
             <button
               onClick={() => setPopupData(null)}
-              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition"
             >
-              <FaTimes />
+              <FaTimes size={18} />
             </button>
-            <h3 className="text-lg font-semibold text-blue-700 mb-4">
-              Tracking Details
-            </h3>
-            <p><strong>Date:</strong> {popupData.date}</p>
-            <p><strong>Tracking No:</strong> {popupData.trackingNo}</p>
-            <p><strong>Location:</strong> {popupData.location}</p>
-            <p><strong>Status:</strong> {popupData.event}</p>
-            {popupData.podImage && (
-              <img
-                src={popupData.podImage}
-                alt="POD"
-                className="mt-4 border rounded-md w-full"
-              />
-            )}
+
+            {/* Header */}
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-4 rounded-t-2xl shadow-sm">
+              <h3 className="text-lg sm:text-xl font-semibold flex items-center gap-2">
+                📦 Tracking Details
+              </h3>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="bg-gray-50 p-4 rounded-xl shadow-sm hover:shadow-md transition">
+                  <p className="text-sm text-gray-500 font-medium">Tracking No</p>
+                  <p className="text-gray-900 font-semibold text-base">{popupData.trackingNo}</p>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-xl shadow-sm hover:shadow-md transition">
+                  <p className="text-sm text-gray-500 font-medium">Date</p>
+                  <p className="text-gray-900 font-semibold text-base">{popupData.date}</p>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-xl shadow-sm hover:shadow-md transition">
+                  <p className="text-sm text-gray-500 font-medium">Location</p>
+                  <p className="text-gray-900 font-semibold text-base">{popupData.location}</p>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-xl shadow-sm hover:shadow-md transition">
+                  <p className="text-sm text-gray-500 font-medium">Current Status</p>
+                  <p
+                    className={`text-base font-bold ${
+                      /delivered/i.test(popupData.event)
+                        ? "text-green-600"
+                        : /out for delivery/i.test(popupData.event)
+                        ? "text-yellow-600"
+                        : /in transit/i.test(popupData.event)
+                        ? "text-blue-600"
+                        : "text-gray-700"
+                    }`}
+                  >
+                    {popupData.event}
+                  </p>
+                </div>
+              </div>
+
+              {/* POD Image */}
+              {popupData.podImage && (
+                <div className="mt-6">
+                  <h4 className="text-md font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                    🧾 Proof of Delivery (POD)
+                  </h4>
+                  <div className="relative group">
+                    <img
+                      src={popupData.podImage}
+                      alt="POD"
+                      className="rounded-xl border border-gray-200 w-full shadow-md group-hover:shadow-lg transition"
+                    />
+                    <a
+                      href={popupData.podImage}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="absolute bottom-3 right-3 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm shadow hover:bg-blue-500 transition "
+                    >
+                      View / Download POD
+                    </a>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
 
-      {/* Animation */}
       <style>
         {`
           @keyframes fadeIn {

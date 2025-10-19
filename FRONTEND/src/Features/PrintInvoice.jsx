@@ -105,8 +105,8 @@ export default function PrintInvoice({ order, onClose }) {
             </div>
             <div className="px-2 py-1">
               <p><strong>Party Name:</strong> {order.ledger}</p>
-              <p><strong>GSTIN:</strong> {order.gstin || "N/A"}</p>
-              <p><strong>Address:</strong> {order.address || "—"}</p>
+              <p><strong>GSTIN:</strong> {order.ledgerGSTIN || "N/A"}</p>
+              <p><strong>Address:</strong> {order.ledgerAddress || "—"}</p>
             </div>
           </div>
 

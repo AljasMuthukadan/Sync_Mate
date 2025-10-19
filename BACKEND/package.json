@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "Server.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node Server.js",
@@ -17,6 +18,7 @@
     "mongoose": "^8.18.3",
     "nodemon": "^3.1.10",
     "playwright": "^1.56.1",
-    "puppeteer-core": "^24.25.0"
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
   }
 }

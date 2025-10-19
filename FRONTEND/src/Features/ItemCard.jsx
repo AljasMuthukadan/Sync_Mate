@@ -38,14 +38,14 @@ export default function ItemCard({ item, startEdit, deleteItem }) {
       {/* Badges */}
       <div className="flex gap-2 mt-2 mb-3">
         <span
-          className={`px-3 py-1 text-sm font-medium rounded-full ${
+          className={`px-3 py-1 text-sm font-medium rounded-b-sm ${
             categoryColors[item.category] || "bg-gray-100 text-gray-700"
           }`}
         >
           {item.category}
         </span>
         <span
-          className={`px-3 py-1 text-sm font-medium rounded-full ${stockColors}`}
+          className={`px-3 py-1 text-sm font-medium rounded-sm ${stockColors}`}
         >
           Stock: {item.quantity}
         </span>
