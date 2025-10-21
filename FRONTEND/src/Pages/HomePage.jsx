@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FaTachometerAlt, FaBoxes, FaCogs, FaTruck, FaClipboardList, FaIndustry, FaBars, FaBell, FaSearch } from "react-icons/fa";
 import Dashboard from "../Components/Dashboard.jsx";
 import ItemsSection from "../Components/ItemsSection.jsx";
 import ShipmentsSection from "../Components/ShipmentsSection.jsx";
@@ -14,55 +15,94 @@ export default function HomePage() {
     { id: 1, name: "Laptop", quantity: 10, category: "Finished Goods" },
     { id: 2, name: "Keyboard", quantity: 3, category: "Raw Materials" },
     { id: 3, name: "Mouse", quantity: 40, category: "Finished Goods" },
+    { id: 4, name: "Durofill GL-250 400 gm", quantity: 899, category: "Finished Goods" },
+    { id: 5, name: "Durofill GL-250 1500 gm", quantity: 350, category: "Finished Goods" },
   ]);
 
   const [orders, setOrders] = useState([]);
   const [productions, setProductions] = useState([]);
 
-  const menuItems = ["Dashboard", "Orders", "Items", "Production", "Shipments", "Settings"];
+  const menuItems = [
+    { name: "Dashboard", icon: <FaTachometerAlt /> },
+    { name: "Orders", icon: <FaClipboardList /> },
+    { name: "Items", icon: <FaBoxes /> },
+    { name: "Production", icon: <FaIndustry /> },
+    { name: "Shipments", icon: <FaTruck /> },
+    { name: "Settings", icon: <FaCogs /> },
+  ];
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 font-sans text-gray-800">
       {/* Sidebar */}
       <aside
-        className={`fixed md:relative z-20 h-full w-64 bg-white text-blue-700 p-5 shadow-md transform md:translate-x-0 transition-transform ${
+        className={`fixed md:relative z-20 h-full w-64 bg-white text-gray-800 p-5 shadow-lg transform md:translate-x-0 transition-transform duration-300 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         } md:block`}
       >
-        <h1 className="text-2xl font-bold mb-6">Inventory</h1>
-        <nav className="space-y-4">
-          {menuItems.map((menu) => (
+        <h1 className="text-3xl font-bold mb-8 text-blue-700 tracking-tight font-mono">SYNC MATE </h1>
+        <nav className="space-y-2">
+          {menuItems.map(({ name, icon }) => (
             <button
-              key={menu}
+            
+              key={name}
               onClick={() => {
-                setPage(menu);
+                setPage(name);
                 setSidebarOpen(false);
               }}
-              className={`block w-full text-left py-2 px-4 rounded font-medium transition ${
-                page === menu
-                  ? "bg-blue-600 text-white"
-                  : "hover:bg-blue-100 hover:text-blue-800"
+              className={`flex items-center gap-3 w-full text-left py-3 px-4 rounded-lg transition-colors duration-200 ${
+                page === name
+                  ? "bg-blue-600 text-white shadow"
+                  : "hover:bg-blue-100 hover:text-blue-700"
               }`}
             >
-              {menu}
+              <span className="text-lg">{icon}</span>
+              <span className="font-medium">{name}</span>
             </button>
           ))}
         </nav>
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        {/* Mobile Header */}
-        <div className="md:hidden flex items-center justify-between bg-white shadow px-4 py-3">
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="text-blue-700 font-bold"
-          >
-            {sidebarOpen ? "Close" : "Menu"}
-          </button>
-          <h1 className="text-xl font-bold text-blue-700">{page}</h1>
-        </div>
+      <div className="flex-1 flex flex-col ">
+        {/* Top Navbar */}
+        <header className="flex items-center justify-between bg-white shadow px-4 py-3 md:px-6">
+          {/* Left: Hamburger & Page Title */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="text-blue-700 md:hidden text-xl"
+            >
+              <FaBars />
+            </button>
+            <h1 className="text-xl font-bold text-blue-700 hidden md:block">{page}</h1>
+          </div>
 
+          {/* Center: Search Bar */}
+          <div className="flex-1 mx-4 relative hidden md:flex">
+            <input
+              type="text"
+              placeholder="Search shipments, orders..."
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+            />
+            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          </div>
+
+          {/* Right: Notifications & Avatar */}
+          <div className="flex items-center gap-4">
+            <button className="relative text-gray-600 hover:text-gray-800 transition">
+              <FaBell className="text-xl" />
+              <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+            <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-100 px-2 py-1 rounded-lg transition">
+              <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
+                A
+              </div>
+              <span className="font-medium hidden md:block">Admin</span>
+            </div>
+          </div>
+        </header>
+
+        {/* Page Content */}
         <main className="flex-1 p-4 sm:p-6 overflow-y-auto">
           {page === "Dashboard" && (
             <Dashboard
@@ -88,7 +128,14 @@ export default function HomePage() {
           )}
         </main>
       </div>
+
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 bg-black/30 z-10 md:hidden"
+        ></div>
+      )}
     </div>
   );
 }
-

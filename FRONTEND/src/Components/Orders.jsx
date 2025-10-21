@@ -31,13 +31,14 @@ export default function Orders({ items, setItems }) {
   };
 
   return (
-    <div className="min-h-[85vh] p-6 bg-gradient-to-br from-blue-50 via-white to-indigo-100 rounded-xl">
-      <h1 className="text-3xl font-extrabold text-blue-700 mb-6 text-center">
+    <div className="min-h-[85vh] p-4 sm:p-6 bg-gradient-to-br from-blue-50 via-white to-indigo-100 rounded-xl flex flex-col">
+      {/* Title */}
+      <h1 className="text-2xl sm:text-3xl font-extrabold text-blue-700 mb-4 sm:mb-6 text-center">
         🛒 Orders Management
       </h1>
 
       {/* Tabs */}
-      <div className="flex justify-center gap-4 mb-6">
+      <div className="flex flex-wrap justify-center gap-3 sm:gap-4 mb-4 sm:mb-6">
         {[
           { key: "form", icon: <FaPlusCircle />, label: "New Order" },
           { key: "history", icon: <FaHistory />, label: "Order History" },
@@ -45,19 +46,19 @@ export default function Orders({ items, setItems }) {
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex items-center gap-2 px-6 py-2 rounded-xl font-semibold transition-all duration-300 ${
+            className={`flex items-center justify-center gap-2 px-4 sm:px-6 py-2 rounded-xl font-semibold w-full sm:w-auto text-sm sm:text-base transition-all duration-300 ${
               activeTab === tab.key
-                ? "bg-white/70 backdrop-blur-md shadow-lg text-blue-700"
+                ? "bg-white/80 backdrop-blur-md shadow-lg text-blue-700"
                 : "bg-white/50 backdrop-blur-sm border border-blue-200 text-blue-600 hover:bg-white/60"
             }`}
           >
-            {tab.icon} {tab.label}
+            {tab.icon} <span>{tab.label}</span>
           </button>
         ))}
       </div>
 
       {/* Tab Content */}
-      <div className="bg-white/70 backdrop-blur-md rounded-xl shadow-lg p-6 transition-all duration-300">
+      <div className="bg-white/80 backdrop-blur-md rounded-xl shadow-lg p-4 sm:p-6 flex-1 transition-all duration-300 overflow-x-auto">
         {activeTab === "form" ? (
           <OrderForm
             addNewOrder={addNewOrder}
