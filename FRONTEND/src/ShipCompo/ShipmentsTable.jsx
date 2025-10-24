@@ -1,60 +1,68 @@
-import { FaSyncAlt } from "react-icons/fa";
+import { FaSyncAlt, FaEye } from "react-icons/fa";
 
 export default function ShipmentsTable({ shipments, fetchStatus, loadingId, statusColor }) {
   return (
-    <div className="overflow-x-auto rounded-xl shadow hidden sm:block">
-      <table className="min-w-full bg-white border border-gray-200 rounded-lg overflow-hidden">
-        <thead>
-          <tr className="bg-blue-50 text-blue-700 text-sm uppercase">
-            <th className="p-3 text-left">ID</th>
+    <div className="hidden md:block overflow-x-auto">
+      <table className="min-w-full border border-gray-200 rounded-lg shadow-sm bg-white">
+        <thead className="bg-blue-100 text-blue-800">
+          <tr>
+            <th className="p-3 text-left">#</th>
             <th className="p-3 text-left">Ledger</th>
             <th className="p-3 text-left">Courier</th>
-            <th className="p-3 text-left">Tracking</th>
+            <th className="p-3 text-left">Tracking No</th>
             <th className="p-3 text-left">Status</th>
             <th className="p-3 text-left">Location</th>
             <th className="p-3 text-left">Last Checked</th>
-            <th className="p-3 text-left">Action</th>
+            <th className="p-3 text-center">Actions</th>
           </tr>
         </thead>
         <tbody>
-          {shipments.length > 0 ? (
-            shipments.map((s) => (
-              <tr key={s.id} className="border-b hover:bg-blue-50 text-sm">
-                <td className="p-3">{s.id}</td>
-                <td className="p-3">{s.ledger}</td>
-                <td className="p-3">{s.courier}</td>
-                <td className="p-3">{s.tracking}</td>
+          {shipments.length === 0 ? (
+            <tr>
+              <td colSpan="8" className="text-center py-6 text-gray-500">
+                No shipments added yet.
+              </td>
+            </tr>
+          ) : (
+            shipments.map((shipment) => (
+              <tr
+                key={shipment.id}
+                className="border-t hover:bg-blue-50 transition-colors duration-150"
+              >
+                <td className="p-3">{shipment.id}</td>
+                <td className="p-3">{shipment.ledger}</td>
+                <td className="p-3">{shipment.courier}</td>
+                <td className="p-3 font-mono">{shipment.tracking}</td>
                 <td
-                  className={`p-3 cursor-pointer ${statusColor(s.deliveryStatus)}`}
-                  onClick={() => fetchStatus(s, true)}
+                  className={`p-3 font-semibold ${statusColor(
+                    shipment.deliveryStatus
+                  )}`}
                 >
-                  {loadingId === s.id ? "Loading..." : s.deliveryStatus}
+                  {shipment.deliveryStatus}
                 </td>
-                <td className="p-3">{s.location}</td>
-                <td className="p-3 text-xs">{s.lastChecked || "--"}</td>
-                <td className="p-3">
+                <td className="p-3">{shipment.location}</td>
+                <td className="p-3">{shipment.lastChecked}</td>
+                <td className="p-3 text-center flex justify-center gap-3">
                   <button
-                    onClick={() => fetchStatus(s, false)}
-                    disabled={loadingId === s.id}
-                    className={`flex items-center gap-2 bg-blue-100 text-blue-700 px-3 py-1 rounded-md hover:bg-blue-200 ${
-                      loadingId === s.id ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
+                    onClick={() => fetchStatus(shipment, false)}
+                    className="bg-blue-600 hover:bg-blue-500 text-white p-2 rounded-lg shadow"
+                    disabled={loadingId === shipment.id}
                   >
-                    <FaSyncAlt className={loadingId === s.id ? "animate-spin" : ""} />
-                    {loadingId === s.id ? "Checking..." : "Check Status"}
+                    {loadingId === shipment.id ? (
+                      <FaSyncAlt className="animate-spin" />
+                    ) : (
+                      <FaSyncAlt />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => fetchStatus(shipment, true)}
+                    className="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-lg shadow"
+                  >
+                    <FaEye />
                   </button>
                 </td>
               </tr>
             ))
-          ) : (
-            <tr>
-              <td
-                colSpan="8"
-                className="text-center p-6 text-gray-500 italic bg-gray-50"
-              >
-                No shipments added yet
-              </td>
-            </tr>
           )}
         </tbody>
       </table>

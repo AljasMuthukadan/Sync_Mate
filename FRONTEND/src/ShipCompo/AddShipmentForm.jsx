@@ -1,6 +1,12 @@
 import { FaTimes } from "react-icons/fa";
 
-export default function AddShipmentForm({ newShipment, setNewShipment, addShipment, setShowForm, couriers }) {
+export default function AddShipmentForm({
+  newShipment,
+  setNewShipment,
+  addShipment,
+  setShowForm,
+  couriers,
+}) {
   return (
     <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
       <div className="bg-white border rounded-xl shadow-2xl p-6 w-full max-w-lg relative animate-fadeIn">

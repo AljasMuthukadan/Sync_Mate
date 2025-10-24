@@ -6,7 +6,8 @@ export default function StatusPopup({ popupData, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-start pt-20 z-50 animate-fadeIn">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl relative overflow-y-auto max-h-[85vh] border border-gray-100">
-        {/* Close Button */}
+        
+        {/* Close */}
         <button
           onClick={onClose}
           className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 transition"
@@ -19,7 +20,9 @@ export default function StatusPopup({ popupData, onClose }) {
           <h3 className="text-2xl font-bold flex items-center gap-2">
             🚚 Shipment Tracking Details
           </h3>
-          <p className="text-sm text-blue-100">Comprehensive tracking summary and proof of delivery</p>
+          <p className="text-sm text-blue-100">
+            Comprehensive tracking summary and proof of delivery
+          </p>
         </div>
 
         {/* Content */}
@@ -52,7 +55,9 @@ export default function StatusPopup({ popupData, onClose }) {
                   className={`font-semibold text-lg ${
                     /delivered/i.test(popupData.event || popupData.status)
                       ? "text-green-600"
-                      : /in transit|out for delivery|shipped/i.test(popupData.event || popupData.status)
+                      : /in transit|out for delivery|shipped/i.test(
+                          popupData.event || popupData.status
+                        )
                       ? "text-blue-600"
                       : "text-gray-700"
                   }`}
@@ -66,7 +71,9 @@ export default function StatusPopup({ popupData, onClose }) {
           {/* Shipment Info */}
           {popupData.info && (
             <div className="bg-gray-50 p-4 rounded-lg border">
-              <h4 className="font-semibold text-blue-700 mb-2">📦 Shipment Information</h4>
+              <h4 className="font-semibold text-blue-700 mb-2">
+                📦 Shipment Information
+              </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                 {Object.entries(popupData.info).map(([key, value]) => (
                   <p key={key}>
@@ -111,10 +118,12 @@ export default function StatusPopup({ popupData, onClose }) {
             </div>
           )}
 
-          {/* Timeline / History */}
+          {/* Timeline */}
           {popupData.timeline && popupData.timeline.length > 0 && (
             <div className="bg-gray-50 p-4 rounded-lg border">
-              <h4 className="font-semibold text-blue-700 mb-3">🕒 Tracking History</h4>
+              <h4 className="font-semibold text-blue-700 mb-3">
+                🕒 Tracking History
+              </h4>
               <div className="relative pl-6">
                 <div className="absolute left-2 top-0 bottom-0 w-[2px] bg-blue-200"></div>
                 <ul className="space-y-4">
@@ -122,8 +131,14 @@ export default function StatusPopup({ popupData, onClose }) {
                     <li key={idx} className="relative">
                       <div className="absolute -left-[7px] top-1.5 w-3 h-3 bg-blue-500 rounded-full shadow-sm"></div>
                       <div className="ml-2">
-                        <p className="font-semibold text-gray-800">{event.activity || event.event}</p>
-                        {event.location && <p className="text-sm text-gray-600">{event.location}</p>}
+                        <p className="font-semibold text-gray-800">
+                          {event.activity || event.event}
+                        </p>
+                        {event.location && (
+                          <p className="text-sm text-gray-600">
+                            {event.location}
+                          </p>
+                        )}
                         <p className="text-xs text-gray-500">{event.date}</p>
                       </div>
                     </li>
@@ -134,6 +149,14 @@ export default function StatusPopup({ popupData, onClose }) {
           )}
         </div>
       </div>
+
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        .animate-fadeIn { animation: fadeIn 0.3s ease-out; }
+      `}</style>
     </div>
   );
 }

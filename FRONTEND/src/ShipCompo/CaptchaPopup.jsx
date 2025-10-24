@@ -1,60 +1,86 @@
-import { FaTimes } from "react-icons/fa";
+import { FaTimes, FaSyncAlt } from "react-icons/fa";
+import axios from "axios";
 
-export default function CaptchaPopup({ captchaData, setCaptchaData, handleCaptchaSubmit }) {
-  if (!captchaData) return null;
+export default function CaptchaPopup({
+  captchaPopup,
+  setCaptchaPopup,
+  handleCaptchaSubmit,
+}) {
+  if (!captchaPopup) return null;
 
-  const { imageUrl, courier, tracking } = captchaData;
+  const refreshCaptcha = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/dtdc/captcha");
+      if (res.data?.captcha) {
+        let imageData = res.data.captcha;
+        if (!imageData.startsWith("data:image"))
+          imageData = `data:image/png;base64,${imageData}`;
+        setCaptchaPopup({
+          ...captchaPopup,
+          image: imageData,
+          enteredCaptcha: "",
+          sessionId: res.data.sessionId,
+        });
+      }
+    } catch (err) {
+      alert("Failed to refresh CAPTCHA");
+    }
+  };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 animate-fadeIn">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md relative">
-        {/* Header */}
-        <div className="flex justify-between items-center bg-blue-600 text-white px-5 py-3">
-          <h2 className="text-lg font-semibold">Captcha Required</h2>
+    <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-[1000] px-3">
+      <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm relative animate-fadeIn">
+        <button
+          onClick={() => setCaptchaPopup(null)}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition"
+        >
+          <FaTimes size={20} />
+        </button>
+
+        <div className="text-center mb-4">
+          <h3 className="text-xl font-bold text-blue-700 flex items-center justify-center gap-2">
+            <FaSyncAlt /> DTDC CAPTCHA
+          </h3>
+          <p className="text-gray-500 text-sm mt-1">
+            Enter the code shown below to track your shipment
+          </p>
+        </div>
+
+        <div className="flex flex-col items-center gap-3 mb-4">
+          {captchaPopup.image ? (
+            <img
+              src={captchaPopup.image}
+              alt="CAPTCHA"
+              className="w-56 h-20 object-contain border border-gray-300 rounded-lg shadow-sm"
+            />
+          ) : (
+            <p className="text-gray-500">Loading CAPTCHA...</p>
+          )}
+
           <button
-            onClick={() => setCaptchaData(null)}
-            className="text-white hover:text-gray-200"
+            onClick={refreshCaptcha}
+            className="text-sm text-blue-600 hover:text-blue-800 underline transition"
           >
-            <FaTimes size={18} />
+            Refresh CAPTCHA
           </button>
         </div>
 
-        {/* Content */}
-        <div className="p-6 space-y-4">
-          <p className="text-sm text-gray-600">
-            Courier: <strong>{courier}</strong>
-            <br />
-            Tracking No: <strong>{tracking}</strong>
-          </p>
+        <input
+          type="text"
+          placeholder="Enter CAPTCHA"
+          value={captchaPopup.enteredCaptcha || ""}
+          onChange={(e) =>
+            setCaptchaPopup({ ...captchaPopup, enteredCaptcha: e.target.value })
+          }
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-center focus:outline-none focus:ring-2 focus:ring-blue-300"
+        />
 
-          {imageUrl ? (
-            <div className="flex flex-col items-center gap-3">
-              <img
-                src={imageUrl}
-                alt="Captcha"
-                className="border rounded-md shadow-sm"
-              />
-              <input
-                type="text"
-                placeholder="Enter Captcha"
-                className="border border-gray-300 rounded-md px-3 py-2 w-full outline-none focus:border-blue-500"
-                id="captchaInput"
-              />
-              <button
-                onClick={() =>
-                  handleCaptchaSubmit(document.getElementById("captchaInput").value)
-                }
-                className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-500"
-              >
-                Submit
-              </button>
-            </div>
-          ) : (
-            <p className="text-gray-500 italic text-center">
-              Loading captcha...
-            </p>
-          )}
-        </div>
+        <button
+          onClick={handleCaptchaSubmit}
+          className="mt-4 w-full bg-blue-600 text-white font-medium px-4 py-2 rounded-lg shadow hover:bg-blue-500 transition"
+        >
+          Submit
+        </button>
       </div>
     </div>
   );
