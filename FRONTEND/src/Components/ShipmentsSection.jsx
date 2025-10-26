@@ -14,6 +14,10 @@ export default function ShipmentsSection() {
   const [loadingId, setLoadingId] = useState(null);
   const [popupData, setPopupData] = useState(null);
   const [captchaPopup, setCaptchaPopup] = useState(null);
+  const deleteShipment = (id) => {
+  setShipments(shipments.filter((s) => s.id !== id));
+};
+
 
   const [newShipment, setNewShipment] = useState({
     ledger: "",
@@ -179,6 +183,7 @@ export default function ShipmentsSection() {
         fetchStatus={fetchStatus}
         loadingId={loadingId}
         statusColor={statusColor}
+        deleteShipment={deleteShipment}
       />
 
       {/* Mobile View */}
@@ -197,6 +202,7 @@ export default function ShipmentsSection() {
           addShipment={addShipment}
           setShowForm={setShowForm}
           couriers={couriers}
+          shipments={shipments}
         />
       )}
 

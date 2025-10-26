@@ -1,11 +1,25 @@
 import { useState } from "react";
-import { FaTachometerAlt, FaBoxes, FaCogs, FaTruck, FaClipboardList, FaIndustry, FaBars, FaBell, FaSearch } from "react-icons/fa";
+import {
+  FaTachometerAlt,
+  FaBoxes,
+  FaCogs,
+  FaTruck,
+  FaClipboardList,
+  FaIndustry,
+  FaBars,
+  FaBell,
+  FaSearch,
+  FaChartBar,
+} from "react-icons/fa";
+
 import Dashboard from "../Components/Dashboard.jsx";
 import ItemsSection from "../Components/ItemsSection.jsx";
 import ShipmentsSection from "../Components/ShipmentsSection.jsx";
 import SettingsSection from "../Components/SettingsSection.jsx";
 import FinishedGoodsProduction from "../Components/FinishedGoodsProduction.jsx";
 import Orders from "../Components/Orders.jsx";
+import ReportsSection from "../Components/ReportsSection.jsx";
+import TaskSection from "../Components/TaskSection.jsx";
 
 export default function HomePage() {
   const [page, setPage] = useState("Dashboard");
@@ -21,6 +35,11 @@ export default function HomePage() {
 
   const [orders, setOrders] = useState([]);
   const [productions, setProductions] = useState([]);
+  const staffList = [
+    { id: 1, name: "Alice Johnson", role: "Manager" },
+    { id: 2, name: "Bob Smith", role: "Warehouse Staff" },
+    { id: 3, name: "Charlie Brown", role: "Production Staff" },
+  ];
 
   const menuItems = [
     { name: "Dashboard", icon: <FaTachometerAlt /> },
@@ -28,6 +47,8 @@ export default function HomePage() {
     { name: "Items", icon: <FaBoxes /> },
     { name: "Production", icon: <FaIndustry /> },
     { name: "Shipments", icon: <FaTruck /> },
+    { name: "Tasks", icon: <FaClipboardList /> },
+    { name: "Reports", icon: <FaChartBar /> },
     { name: "Settings", icon: <FaCogs /> },
   ];
 
@@ -39,11 +60,12 @@ export default function HomePage() {
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         } md:block`}
       >
-        <h1 className="text-3xl font-bold mb-8 text-blue-700 tracking-tight font-mono">SYNC MATE </h1>
+        <h1 className="text-3xl font-bold mb-8 text-blue-700 tracking-tight font-mono">
+          SYNC MATE
+        </h1>
         <nav className="space-y-2">
           {menuItems.map(({ name, icon }) => (
             <button
-            
               key={name}
               onClick={() => {
                 setPage(name);
@@ -63,10 +85,9 @@ export default function HomePage() {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col ">
+      <div className="flex-1 flex flex-col">
         {/* Top Navbar */}
         <header className="flex items-center justify-between bg-white shadow px-4 py-3 md:px-6">
-          {/* Left: Hamburger & Page Title */}
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -77,7 +98,6 @@ export default function HomePage() {
             <h1 className="text-xl font-bold text-blue-700 hidden md:block">{page}</h1>
           </div>
 
-          {/* Center: Search Bar */}
           <div className="flex-1 mx-4 relative hidden md:flex">
             <input
               type="text"
@@ -87,7 +107,6 @@ export default function HomePage() {
             <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           </div>
 
-          {/* Right: Notifications & Avatar */}
           <div className="flex items-center gap-4">
             <button className="relative text-gray-600 hover:text-gray-800 transition">
               <FaBell className="text-xl" />
@@ -122,9 +141,19 @@ export default function HomePage() {
             />
           )}
           {page === "Shipments" && <ShipmentsSection />}
+          {page === "Tasks" && <TaskSection items={items} setItems={setItems}  staff={staffList} />}
+          {page === "Reports" && <ReportsSection  
+                items={items} orders={orders} productions={productions}
+              
+          />}
           {page === "Settings" && <SettingsSection />}
           {page === "Orders" && (
-            <Orders items={items} setItems={setItems} orders={orders} setOrders={setOrders} />
+            <Orders
+              items={items}
+              setItems={setItems}
+              orders={orders}
+              setOrders={setOrders}
+            />
           )}
         </main>
       </div>
