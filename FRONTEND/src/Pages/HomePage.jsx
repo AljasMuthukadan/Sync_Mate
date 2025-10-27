@@ -10,6 +10,9 @@ import {
   FaBell,
   FaSearch,
   FaChartBar,
+  FaUsers,
+  FaUserTie,
+  FaFileInvoice,
 } from "react-icons/fa";
 
 import Dashboard from "../Components/Dashboard.jsx";
@@ -20,6 +23,15 @@ import FinishedGoodsProduction from "../Components/FinishedGoodsProduction.jsx";
 import Orders from "../Components/Orders.jsx";
 import ReportsSection from "../Components/ReportsSection.jsx";
 import TaskSection from "../Components/TaskSection.jsx";
+
+import {
+  SuppliersSection,
+  PurchaseOrdersSection,
+  StaffSection,
+  AnalyticsSection,
+  NotificationsSection,
+  CustomersSection,
+} from "../Components/SectionsPlaceholders.jsx";
 
 export default function HomePage() {
   const [page, setPage] = useState("Dashboard");
@@ -49,6 +61,12 @@ export default function HomePage() {
     { name: "Shipments", icon: <FaTruck /> },
     { name: "Tasks", icon: <FaClipboardList /> },
     { name: "Reports", icon: <FaChartBar /> },
+    { name: "Suppliers", icon: <FaTruck /> },
+    { name: "Purchase Orders", icon: <FaFileInvoice /> },
+    { name: "Staff", icon: <FaUserTie /> },
+    { name: "Analytics", icon: <FaChartBar /> },
+    { name: "Notifications", icon: <FaBell /> },
+    { name: "Customers", icon: <FaUsers /> },
     { name: "Settings", icon: <FaCogs /> },
   ];
 
@@ -142,10 +160,13 @@ export default function HomePage() {
           )}
           {page === "Shipments" && <ShipmentsSection />}
           {page === "Tasks" && <TaskSection items={items} setItems={setItems}  staff={staffList} />}
-          {page === "Reports" && <ReportsSection  
-                items={items} orders={orders} productions={productions}
-              
-          />}
+          {page === "Reports" && <ReportsSection items={items} orders={orders} productions={productions} />}
+          {page === "Suppliers" && <SuppliersSection />}
+          {page === "Purchase Orders" && <PurchaseOrdersSection />}
+          {page === "Staff" && <StaffSection staff={staffList} />}
+          {page === "Analytics" && <AnalyticsSection />}
+          {page === "Notifications" && <NotificationsSection />}
+          {page === "Customers" && <CustomersSection />}
           {page === "Settings" && <SettingsSection />}
           {page === "Orders" && (
             <Orders

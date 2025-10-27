@@ -86,6 +86,7 @@ export default function ShipmentsSection() {
       const res = await axios.post(endpoint, {
         courier: shipment.courier,
         tracking: shipment.tracking,
+        ledgerId: shipment.ledger,
       });
 
       if (res.data.status) {
