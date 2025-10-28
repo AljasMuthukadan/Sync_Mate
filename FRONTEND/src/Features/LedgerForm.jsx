@@ -1,4 +1,5 @@
 import { useState } from "react";
+import axios from "axios";
 
 export default function LedgerForm({ addLedger, onClose }) {
   const [formData, setFormData] = useState({
@@ -11,12 +12,14 @@ export default function LedgerForm({ addLedger, onClose }) {
   });
 
   const handleSave = () => {
+    
     const { name, gstin, pincode, address, phone, category } = formData;
     if (!name || !gstin || !pincode || !address || !phone || !category) {
       alert("Please fill all fields!");
       return;
     }
     addLedger(formData);
+    axios.post("http://localhost:5000/api/ledger/add", formData)
     onClose();
   };
 
