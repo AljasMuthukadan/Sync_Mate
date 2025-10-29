@@ -1,4 +1,32 @@
-export default function LedgerList({ ledgers }) {
+import { useState, useEffect } from "react";
+import axios from "axios";
+
+export default function LedgerList() {
+  const [ledgers, setLedgers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLedgers = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/ledger/get");
+        setLedgers(res.data);
+      } catch (err) {
+        console.error("Error fetching ledgers:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLedgers();
+  }, []); // ✅ Empty dependency array so it runs only once
+
+  if (loading) {
+    return (
+      <div className="text-center py-6 text-gray-500 font-medium">
+        Loading ledgers...
+      </div>
+    );
+  }
   return (
     <div className="overflow-x-auto bg-gray-50 rounded-2xl shadow-inner p-2 border border-gray-200">
       <table className="min-w-full border-collapse font-sans text-sm">

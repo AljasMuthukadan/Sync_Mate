@@ -50,6 +50,7 @@ export default function ShipmentsSection() {
       },
     ]);
     setShowForm(false);
+    axios.post("http://localhost:5000/api/shipment/add", newShipment)
     setNewShipment({ ledger: "", courier: "", tracking: "" });
   };
 
@@ -88,7 +89,6 @@ export default function ShipmentsSection() {
         tracking: shipment.tracking,
         ledgerId: shipment.ledger,
       });
-
       if (res.data.status) {
         const updated = shipments.map((s) =>
           s.id === shipment.id
@@ -105,12 +105,15 @@ export default function ShipmentsSection() {
             : s
         );
         setShipments(updated);
+    
         if (showPopup)
           setPopupData({
             ...res.data.status,
             info: res.data.status.details || null,
             timeline: res.data.status.history || null,
+
           });
+        
       } else alert("No status found");
     } catch (err) {
       alert("Error fetching status: " + err.message);

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { FaTimes } from "react-icons/fa";
+import  axios from "axios";
 
 export default function AddShipmentForm({
   newShipment,
@@ -13,14 +14,21 @@ export default function AddShipmentForm({
   const [ledgerSuggestions, setLedgerSuggestions] = useState([]);
   const suggestionRef = useRef(null);
   const justClicked = useRef(false); // ✅ prevents dropdown reopening
-
-  const commonLedgers = [
-    "SS Impex",
-    "Crystal Distributions",
-    "Hi Design",
-    "KP Agencies",
-    "Kallis Floorings",
-  ];
+   const [commonLedgers, setCommonLedgers] = useState([]);
+  
+  useEffect(() => {
+    const fetchLedgers = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/ledger/get");
+        console.log(res.data[0].name);
+        const ledgerNames = res.data.map((ledger) => ledger.name);
+        setCommonLedgers(ledgerNames);
+      } catch (err) {
+        console.error("Error fetching ledgers:", err);
+      }
+    };
+    fetchLedgers();
+  }, []);
 
   // ✅ Filter suggestions when typing
   useEffect(() => {

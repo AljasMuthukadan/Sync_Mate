@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import connectDB from "./config/dbConnect.js";
 import mongoose from "mongoose";
 import ledgerRoutes from "./Routes/ledgerRoutes.js";
+import shipmentRoutes from "./Routes/shipmentRoutes.js";
 
 const app = express();
 app.use(cors());
@@ -16,6 +17,7 @@ dotenv.config();
 app.use("/api", trackRoutes);
 app.use("/api/dtdc", dtdcRoutes);
 app.use("/api/ledger", ledgerRoutes);
+app.use("/api/shipment", shipmentRoutes);
 
 
 

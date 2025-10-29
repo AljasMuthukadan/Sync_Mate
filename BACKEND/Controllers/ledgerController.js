@@ -3,14 +3,14 @@ import LedgerModel from "../models/Ledger.js";
 // Add a new ledger
 export const addLedger = async (req, res) => {
   try {
-    const { name, gstin, pincode, phone, category } = req.body;
+    const { name, gstin, address, pincode, phone, category } = req.body;
     console.log(req.body);
 
-    if (!name || !gstin || !pincode || !phone || !category) {
+    if (!name || !gstin || !pincode || !phone || !category || !address) {
       return res.status(400).json({ error: "All fields are required" });
     }
 
-    const newLedger = new LedgerModel({ name, gstin, pincode, phone, category });
+    const newLedger = new LedgerModel({ name, gstin, pincode, phone, category, address });
     await newLedger.save();
 
     res.status(201).json({ message: "Ledger added successfully", ledger: newLedger });

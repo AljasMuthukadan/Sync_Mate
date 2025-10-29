@@ -1,24 +1,10 @@
-import { useState, useRef } from "react";
+
+ import { useState, useRef,useEffect } from "react";
 import { FaTrash } from "react-icons/fa";
+import axios from "axios";
 
 export default function OrderForm({ addNewOrder, onClose }) {
-  // Ledger list (you can later add address & GSTIN separately if needed)
-  const ledgerList = [
-    { name: "SS Impex", address: "123 MG Road, Chennai", gstin: "33AABCS1234F1ZV" },
-    { name: "Crystal Distributions", address: "45 Hill View, Coimbatore", gstin: "33AACCC2345G1ZR" },
-    { name: "KP Agencies", address: "78 Market Street, Madurai", gstin: "33AAACK3456L1ZS" },
-    { name: "Kallis Floorings", address: "22 Anna Nagar, Trichy", gstin: "33AADCK6789H1ZW" },
-    { name: "Sea Rock", address: "99 Beach Road, Tuticorin", gstin: "33AACSR9876M1ZP" },
-  ];
 
-  // 🆕 Added `stock` info for each item
-  const itemList = [
-    { name: "Durofill GL-250 400gm", rate: 840, unit: "Nos", stock: "50 Nos" },
-    { name: "Durofill Gel 400gm", rate: 860, unit: "Nos", stock: "35 Nos" },
-    { name: "Durofill GL-250 1500gm", rate: 2525, unit: "Nos", stock: "12 Nos" },
-    { name: "Durofill Pigment Carbon Black 10gm", rate: 85, unit: "Nos", stock: "56 Nos" },
-    { name: "Durofill Pigment Porcelain White 40gm", rate: 275, unit: "Nos", stock: "180 Nos" },
-  ];
 
   const [ledger, setLedger] = useState("");
   const [ledgerAddress, setLedgerAddress] = useState("");
@@ -35,6 +21,30 @@ export default function OrderForm({ addNewOrder, onClose }) {
   const [activeItemIndex, setActiveItemIndex] = useState(null);
   const [itemDropdownIndex, setItemDropdownIndex] = useState(null);
   const [discount, setDiscount] = useState(0);
+  const [ledgerList , setLedgerList] = useState([])
+
+   useEffect(() => {
+    const fetchLedgers = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/ledger/get");
+        setLedgerList(res.data);
+      } catch (err) {
+        console.error("Error fetching ledgers:", err);
+      }
+    };
+    fetchLedgers();
+  }, []);
+
+  // 🆕 Added `stock` info for each item
+  const itemList = [
+    { name: "Durofill GL-250 400gm", rate: 840, unit: "Nos", stock: "50 Nos" },
+    { name: "Durofill Gel 400gm", rate: 860, unit: "Nos", stock: "35 Nos" },
+    { name: "Durofill GL-250 1500gm", rate: 2525, unit: "Nos", stock: "12 Nos" },
+    { name: "Durofill Pigment Carbon Black 10gm", rate: 85, unit: "Nos", stock: "56 Nos" },
+    { name: "Durofill Pigment Porcelain White 40gm", rate: 275, unit: "Nos", stock: "180 Nos" },
+  ];
+
+  
 
   const inputRefs = useRef({ ledger: null, items: [], discount: null });
 
