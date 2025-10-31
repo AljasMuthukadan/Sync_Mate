@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { FaPlus } from "react-icons/fa";
 import axios from "axios";
 import ShipmentsTable from "../ShipCompo/ShipmentsTable";
@@ -14,10 +14,26 @@ export default function ShipmentsSection() {
   const [loadingId, setLoadingId] = useState(null);
   const [popupData, setPopupData] = useState(null);
   const [captchaPopup, setCaptchaPopup] = useState(null);
-  const deleteShipment = (id) => {
-  setShipments(shipments.filter((s) => s.id !== id));
-};
+  const [loading, setLoading] = useState(false);
+   
+  const fetchShipments = async () => {
+      try {
+        setLoading(true);
+        const res = await axios.get("http://localhost:5000/api/shipment/get");
+        setShipments(res.data); // assumes your API returns an array of shipments
+      } catch (err) {
+        console.error("❌ Error fetching shipments:", err);
+        alert("Failed to load shipments from server");
+      }finally {
+        setLoading(false);
+      }
+    };
 
+  useEffect(() => {
+    
+
+    fetchShipments();
+  }, []); // runs only once when section opens
 
   const [newShipment, setNewShipment] = useState({
     ledger: "",
@@ -32,6 +48,22 @@ export default function ShipmentsSection() {
     "Professional Couriers",
     "VRL Logistics",
   ];
+
+  const deleteShipment = async (tracking) => {
+  try {
+    // Remove locally first for instant UI feedback
+    setShipments((prev) => prev.filter((s) => s.tracking !== tracking));
+
+    // Send the specific tracking number to the backend
+    await axios.post("http://localhost:5000/api/shipment/delete", { tracking });
+
+    console.log("✅ Shipment deleted successfully");
+  } catch (err) {
+    console.error("❌ Error deleting shipment:", err);
+    alert("Failed to delete shipment");
+  }
+};
+
 
   // ➕ Add shipment
   const addShipment = () => {
@@ -56,7 +88,8 @@ export default function ShipmentsSection() {
 
   // 🔍 Fetch shipment status (DTDC / Trackon / APS)
   const fetchStatus = async (shipment, showPopup = false) => {
-    setLoadingId(shipment.id);
+    setLoadingId(shipment.tracking);
+   
     try {
       // DTDC requires CAPTCHA
       if (shipment.courier.toLowerCase() === "dtdc") {
@@ -90,8 +123,9 @@ export default function ShipmentsSection() {
         ledgerId: shipment.ledger,
       });
       if (res.data.status) {
+        console.log(res.data)
         const updated = shipments.map((s) =>
-          s.id === shipment.id
+          s.tracking === shipment.tracking
             ? {
                 ...s,
                 deliveryStatus:
@@ -104,7 +138,13 @@ export default function ShipmentsSection() {
               }
             : s
         );
-        setShipments(updated);
+        
+        const updatedShipment = updated.find((s) => s.tracking === shipment.tracking);
+        console.log(updatedShipment)
+        await axios.post("http://localhost:5000/api/shipment/update", updatedShipment);
+        fetchShipments()
+ 
+        
     
         if (showPopup)
           setPopupData({
@@ -181,22 +221,32 @@ export default function ShipmentsSection() {
         </button>
       </div>
 
-      {/* Table View */}
-      <ShipmentsTable
-        shipments={shipments}
-        fetchStatus={fetchStatus}
-        loadingId={loadingId}
-        statusColor={statusColor}
-        deleteShipment={deleteShipment}
-      />
-
-      {/* Mobile View */}
-      <ShipmentsMobileCards
-        shipments={shipments}
-        fetchStatus={fetchStatus}
-        loadingId={loadingId}
-        statusColor={statusColor}
-      />
+      {loading ? (
+  <div className="flex flex-col items-center justify-center py-16">
+    <div className="relative">
+      <div className="w-12 h-12 border-4 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+    <p className="mt-4 text-blue-600 font-medium tracking-wide">
+      Loading shipments...
+    </p>
+  </div>
+) : (
+  <>
+    <ShipmentsTable
+      shipments={shipments}
+      fetchStatus={fetchStatus}
+      loadingId={loadingId}
+      statusColor={statusColor}
+      deleteShipment={deleteShipment}
+    />
+    <ShipmentsMobileCards
+      shipments={shipments}
+      fetchStatus={fetchStatus}
+      loadingId={loadingId}
+      statusColor={statusColor}
+    />
+  </>
+)}
 
       {/* Popups */}
       {showForm && (

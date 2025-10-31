@@ -62,7 +62,6 @@ export default function TaskSection_AvatarGrid_v3_5({ items, setItems, staff }) 
     setTasks((prevTasks) =>
       prevTasks.map((t) => {
         if (t.id === id) {
-          // Update items only on click event, not during render
           if (t.type === "Production" && t.item && t.quantity) {
             setTimeout(() => {
               setItems((prevItems) =>
@@ -72,7 +71,7 @@ export default function TaskSection_AvatarGrid_v3_5({ items, setItems, staff }) 
                     : it
                 )
               );
-            }, 0); // run after render safely
+            }, 0);
           }
           return { ...t, status: "Completed" };
         }
@@ -92,20 +91,20 @@ export default function TaskSection_AvatarGrid_v3_5({ items, setItems, staff }) 
   const completedCount = tasks.filter((t) => t.status === "Completed").length;
 
   const priorityColors = {
-    High: "text-red-600 bg-red-100",
-    Normal: "text-blue-600 bg-blue-100",
-    Low: "text-green-600 bg-green-100",
+    High: "text-red-600 bg-red-100 border border-red-200",
+    Normal: "text-blue-600 bg-blue-100 border border-blue-200",
+    Low: "text-green-600 bg-green-100 border border-green-200",
   };
 
   return (
-    <div className="bg-gradient-to-b from-blue-50 to-blue-100 p-6 rounded-3xl shadow-xl">
+    <div className="bg-gradient-to-br from-blue-50 via-white to-blue-100 p-8 rounded-sm shadow-lg border border-blue-100 backdrop-blur-sm">
       {/* Header */}
-      <div className="flex flex-wrap justify-between items-center mb-6 gap-3">
-        <h2 className="text-3xl font-bold text-blue-800 flex items-center gap-2">
-          <FaTasks /> Task Management
+      <div className="flex flex-wrap justify-between items-center mb-8 gap-4">
+        <h2 className="text-3xl font-semibold text-blue-800 flex items-center gap-3 tracking-tight">
+          <FaTasks className="text-blue-600" /> Task Management
         </h2>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3 flex-wrap">
           <div className="relative">
             <FaSearch className="absolute left-3 top-3 text-gray-400" />
             <input
@@ -113,13 +112,13 @@ export default function TaskSection_AvatarGrid_v3_5({ items, setItems, staff }) 
               placeholder="Search task..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="border pl-10 border-gray-300 rounded-xl p-2 focus:ring-2 focus:ring-blue-400"
+              className="border border-gray-200 bg-white/80 backdrop-blur-sm pl-10 rounded-sm py-2.5 px-3 focus:ring-2 focus:ring-blue-400 shadow-sm"
             />
           </div>
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            className="border border-gray-300 rounded-xl p-2 focus:ring-2 focus:ring-blue-400"
+            className="border border-gray-200 bg-white/80 backdrop-blur-sm rounded-sm py-2.5 px-3 focus:ring-2 focus:ring-blue-400 shadow-sm"
           >
             <option>All</option>
             <option>Pending</option>
@@ -128,7 +127,7 @@ export default function TaskSection_AvatarGrid_v3_5({ items, setItems, staff }) 
           {!showForm && (
             <button
               onClick={() => setShowForm(true)}
-              className="flex items-center gap-2 bg-blue-700 text-white px-5 py-2 rounded-2xl hover:bg-blue-800 shadow-md"
+              className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-2.5 rounded-sm hover:shadow-lg transition-all duration-200"
             >
               <FaPlus /> Add Task
             </button>
@@ -141,7 +140,7 @@ export default function TaskSection_AvatarGrid_v3_5({ items, setItems, staff }) 
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white border border-blue-200 p-6 rounded-2xl shadow-md mb-6"
+          className="bg-white/80 backdrop-blur-md border border-blue-100 p-6 rounded-2xl shadow-md mb-6"
         >
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
             <input
@@ -149,12 +148,12 @@ export default function TaskSection_AvatarGrid_v3_5({ items, setItems, staff }) 
               placeholder="Task Title"
               value={newTask.title}
               onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-              className="border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-blue-400"
+              className="border border-gray-300 p-3 rounded-sm focus:ring-2 focus:ring-blue-400 bg-white/70"
             />
             <select
               value={newTask.type}
               onChange={(e) => setNewTask({ ...newTask, type: e.target.value })}
-              className="border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-blue-400"
+              className="border border-gray-300 p-3 rounded-sm focus:ring-2 focus:ring-blue-400 bg-white/70"
             >
               <option>Production</option>
               <option>General</option>
@@ -162,7 +161,7 @@ export default function TaskSection_AvatarGrid_v3_5({ items, setItems, staff }) 
             <select
               value={newTask.priority}
               onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
-              className="border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-blue-400"
+              className="border border-gray-300 p-3 rounded-sm focus:ring-2 focus:ring-blue-400 bg-white/70"
             >
               <option>Normal</option>
               <option>High</option>
@@ -176,12 +175,12 @@ export default function TaskSection_AvatarGrid_v3_5({ items, setItems, staff }) 
                   placeholder="Quantity"
                   value={newTask.quantity}
                   onChange={(e) => setNewTask({ ...newTask, quantity: e.target.value })}
-                  className="border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-blue-400"
+                  className="border border-gray-300 p-3 rounded-sm focus:ring-2 focus:ring-blue-400 bg-white/70"
                 />
                 <select
                   value={newTask.item}
                   onChange={(e) => setNewTask({ ...newTask, item: e.target.value })}
-                  className="border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-blue-400"
+                  className="border border-gray-300 p-3 rounded-sm focus:ring-2 focus:ring-blue-400 bg-white/70"
                 >
                   <option value="">Select Item</option>
                   {items.map((i) => (
@@ -204,15 +203,15 @@ export default function TaskSection_AvatarGrid_v3_5({ items, setItems, staff }) 
                   <div
                     key={s.id}
                     onClick={() => toggleAssign(s.name)}
-                    className={`cursor-pointer border-2 p-3 rounded-xl flex flex-col items-center transition ${
+                    className={`cursor-pointer border-2 p-3 rounded-md flex flex-col items-center transition-all duration-200 ${
                       isSelected
-                        ? "border-blue-600 bg-blue-100 shadow-md"
-                        : "border-gray-200 hover:border-blue-300 bg-gray-50"
+                        ? "border-blue-500 bg-blue-100/80 shadow-sm"
+                        : "border-gray-200 bg-white/60 hover:border-blue-300"
                     }`}
                   >
                     <div
-                      className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold ${
-                        isSelected ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-600"
+                      className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-semibold ${
+                        isSelected ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700"
                       }`}
                     >
                       {s.name[0]}
@@ -233,20 +232,20 @@ export default function TaskSection_AvatarGrid_v3_5({ items, setItems, staff }) 
                 }
                 className="accent-blue-600"
               />
-              Assign to All Staff
+              <span className="text-gray-700">Assign to All Staff</span>
             </label>
           </div>
 
           <div className="flex gap-3 mt-6">
             <button
               onClick={addTask}
-              className="bg-green-600 text-white px-5 py-2 rounded-2xl hover:bg-green-700"
+              className="bg-gradient-to-r from-green-500 to-green-600 text-white px-5 py-2 rounded-md hover:shadow-md transition"
             >
               Save Task
             </button>
             <button
               onClick={() => setShowForm(false)}
-              className="bg-gray-400 text-white px-5 py-2 rounded-2xl hover:bg-gray-500"
+              className="bg-gray-300 text-gray-800 px-5 py-2 rounded-md hover:bg-gray-400 transition"
             >
               Cancel
             </button>
@@ -264,7 +263,7 @@ export default function TaskSection_AvatarGrid_v3_5({ items, setItems, staff }) 
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${(completedCount / tasks.length) * 100}%` }}
-              className="bg-blue-600 h-3"
+              className="bg-gradient-to-r from-blue-500 to-blue-700 h-3"
             ></motion.div>
           </div>
         </div>
@@ -279,7 +278,7 @@ export default function TaskSection_AvatarGrid_v3_5({ items, setItems, staff }) 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className="bg-white p-5 rounded-2xl shadow-lg hover:shadow-xl transition"
+              className="bg-white/80 backdrop-blur-md p-5 rounded-2xl shadow-md hover:shadow-lg border border-gray-100 transition-all duration-200"
             >
               <div className="flex justify-between items-start">
                 <div>
@@ -287,9 +286,7 @@ export default function TaskSection_AvatarGrid_v3_5({ items, setItems, staff }) 
                   <p className="text-gray-500 text-sm">{task.type}</p>
                 </div>
                 <span
-                  className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                    priorityColors[task.priority]
-                  }`}
+                  className={`text-xs font-semibold px-2 py-1 rounded-full ${priorityColors[task.priority]}`}
                 >
                   {task.priority}
                 </span>
@@ -305,7 +302,7 @@ export default function TaskSection_AvatarGrid_v3_5({ items, setItems, staff }) 
                 {task.assignedTo.map((st) => (
                   <span
                     key={st}
-                    className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium"
+                    className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-medium"
                   >
                     {st}
                   </span>
@@ -324,14 +321,14 @@ export default function TaskSection_AvatarGrid_v3_5({ items, setItems, staff }) 
                   {task.status === "Pending" && (
                     <button
                       onClick={() => completeTask(task.id)}
-                      className="text-green-600 hover:text-green-800"
+                      className="text-green-600 hover:text-green-800 transition"
                     >
                       <FaCheckCircle size={22} />
                     </button>
                   )}
                   <button
                     onClick={() => deleteTask(task.id)}
-                    className="text-red-600 hover:text-red-800"
+                    className="text-red-600 hover:text-red-800 transition"
                   >
                     <FaTimesCircle size={22} />
                   </button>

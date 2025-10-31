@@ -7,8 +7,8 @@ const ShipmentSchema = new mongoose.Schema(
     ledger: { type: String,required: true },
     status: { type: String, default: "Pending" },
     location: { type: String, default: "" },
-    lastUpdated: { type: Date, default: Date.now },
-    podImageUrl: { type: String, default: "" },
+    lastUpdated: { type: String, default: ""},
+    podImage: { type: String, default: "" },
   },
   { timestamps: true }
 );

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { FaPlusCircle, FaHistory, FaFileInvoice } from "react-icons/fa";
 import OrderForm from "../Features/OrderForm.jsx";
 import OrderHistory from "../Features/OrderHistory.jsx";
@@ -13,31 +13,53 @@ export default function Orders({ items, setItems }) {
   const [activeTab, setActiveTab] = useState("form");
   const [ledgerModalOpen, setLedgerModalOpen] = useState(false);
 
-  // --- Orders Functions ---
-  const addNewOrder = (order) => setOrders([order, ...orders]);
+  // 🧠 Memoized functions
+  const addNewOrder = useCallback(
+    (order) => setOrders((prev) => [order, ...prev]),
+    []
+  );
 
-  const restockOrder = (order) => {
-    const updatedItems = [...items];
-    order.items.forEach((oi) => {
-      const item = updatedItems.find((i) => i.name === oi.name);
-      if (item) item.quantity += Number(oi.qty);
-    });
-    setItems(updatedItems);
-  };
+  const restockOrder = useCallback(
+    (order) => {
+      setItems((prevItems) => {
+        const updated = [...prevItems];
+        order.items.forEach((oi) => {
+          const item = updated.find((i) => i.name === oi.name);
+          if (item) item.quantity += Number(oi.qty);
+        });
+        return updated;
+      });
+    },
+    [setItems]
+  );
 
-  const deleteOrder = (order) => {
-    restockOrder(order);
-    setOrders(orders.filter((o) => o !== order));
-    if (selectedOrder === order) setSelectedOrder(null);
-  };
+  const deleteOrder = useCallback(
+    (order) => {
+      restockOrder(order);
+      setOrders((prev) => prev.filter((o) => o !== order));
+      if (selectedOrder === order) setSelectedOrder(null);
+    },
+    [restockOrder, selectedOrder]
+  );
 
-  const updateOrder = (updatedOrder) => {
-    setOrders(orders.map((o) => (o === selectedOrder ? updatedOrder : o)));
-  };
+  const updateOrder = useCallback(
+    (updatedOrder) => {
+      setOrders((prev) =>
+        prev.map((o) => (o === selectedOrder ? updatedOrder : o))
+      );
+    },
+    [selectedOrder]
+  );
 
-  // --- Ledger Functions ---
-  const addLedger = (ledger) => setLedgers([ledger, ...ledgers]);
-  const openLedgerModal = () => setLedgerModalOpen(true);
+  const addLedger = useCallback((ledger) => {
+    setLedgers((prev) => [ledger, ...prev]);
+  }, []);
+
+  const openLedgerModal = useCallback(() => setLedgerModalOpen(true), []);
+
+  // 🧩 Memoized arrays
+  const memoizedOrders = useMemo(() => orders, [orders]);
+  const memoizedLedgers = useMemo(() => ledgers, [ledgers]);
 
   return (
     <div className="min-h-[85vh] p-4 sm:p-6 bg-gradient-to-br from-blue-50 via-white to-indigo-100 rounded-xl flex flex-col">
@@ -69,12 +91,16 @@ export default function Orders({ items, setItems }) {
       {/* Tab Content */}
       <div className="bg-white/80 backdrop-blur-md rounded-xl shadow-lg p-4 sm:p-6 flex-1 transition-all duration-300 overflow-x-auto">
         {activeTab === "form" && (
-          <OrderForm addNewOrder={addNewOrder} ledgers={ledgers} onClose={() => setActiveTab("history")} />
+          <OrderForm
+            addNewOrder={addNewOrder}
+            ledgers={memoizedLedgers}
+            onClose={() => setActiveTab("history")}
+          />
         )}
 
         {activeTab === "history" && (
           <OrderHistory
-            orders={orders}
+            orders={memoizedOrders}
             setOrders={setOrders}
             setSelectedOrder={setSelectedOrder}
             restockOrder={restockOrder}
@@ -91,7 +117,7 @@ export default function Orders({ items, setItems }) {
                 <FaPlusCircle /> Add Ledger
               </button>
             </div>
-            <LedgerList ledgers={ledgers} />
+            <LedgerList ledgers={memoizedLedgers} />
           </div>
         )}
       </div>

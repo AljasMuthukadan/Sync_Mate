@@ -128,7 +128,7 @@ export default function Dashboard({
     { name: "No Shipments", value: totalItems - totalShipments },
   ];
 
-  const COLORS = ["#EF4444", "#E5E7EB"]; // red + gray
+  const COLORS = ["#EF4444", "#E5E7EB"];
   const GREENCOLORS = ["#10B981", "#E5E7EB"];
   const ORANGECOLORS = ["#F97316", "#E5E7EB"];
 
@@ -147,7 +147,7 @@ export default function Dashboard({
       {/* Summary Cards */}
       <motion.div
         layout
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4"
+        className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4"
       >
         {summaryCards.map((card, index) => (
           <motion.div
@@ -240,14 +240,16 @@ export default function Dashboard({
         </div>
       </div>
 
-      {/* Activity Trends Line Chart */}
+      {/* Activity Trends */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
         className="bg-white rounded-2xl shadow-md p-4 sm:p-6 border border-gray-200"
       >
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">Activity Trends</h3>
+        <h3 className="text-xl font-semibold text-gray-800 mb-4">
+          Activity Trends
+        </h3>
         <ResponsiveContainer width="100%" height={250}>
           <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -255,30 +257,10 @@ export default function Dashboard({
             <YAxis />
             <Tooltip />
             <Legend verticalAlign="top" height={36} />
-            <Line
-              type="monotone"
-              dataKey="inventory"
-              stroke="#3B82F6"
-              strokeWidth={2}
-            />
-            <Line
-              type="monotone"
-              dataKey="orders"
-              stroke="#10B981"
-              strokeWidth={2}
-            />
-            <Line
-              type="monotone"
-              dataKey="productions"
-              stroke="#6366F1"
-              strokeWidth={2}
-            />
-            <Line
-              type="monotone"
-              dataKey="shipments"
-              stroke="#F97316"
-              strokeWidth={2}
-            />
+            <Line type="monotone" dataKey="inventory" stroke="#3B82F6" strokeWidth={2} />
+            <Line type="monotone" dataKey="orders" stroke="#10B981" strokeWidth={2} />
+            <Line type="monotone" dataKey="productions" stroke="#6366F1" strokeWidth={2} />
+            <Line type="monotone" dataKey="shipments" stroke="#F97316" strokeWidth={2} />
           </LineChart>
         </ResponsiveContainer>
       </motion.div>
@@ -307,47 +289,40 @@ export default function Dashboard({
         transition={{ delay: 0.5 }}
         className="bg-white rounded-2xl shadow-md p-4 sm:p-6 border border-gray-200"
       >
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">Recent Activity</h3>
+        <h3 className="text-xl font-semibold text-gray-800 mb-4">
+          Recent Activity
+        </h3>
         <ul className="space-y-3 text-gray-700">
-          {productions
-            ?.filter(filterActivity)
-            .slice(0, 5)
-            .map((p, i) => (
-              <li
-                key={i}
-                className="border-b border-gray-100 pb-2 flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded"
-                onClick={() => setPage && setPage("Production")}
-              >
-                <FaIndustry className="text-indigo-500" />
-                Produced <strong>{p.quantity}</strong> of <strong>{p.product}</strong> on {formatDate(p.date)}
-              </li>
-            ))}
-          {orders
-            ?.filter(filterActivity)
-            .slice(0, 5)
-            .map((o, i) => (
-              <li
-                key={i}
-                className="border-b border-gray-100 pb-2 flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded"
-                onClick={() => setPage && setPage("Orders")}
-              >
-                <FaShoppingCart className="text-green-500" />
-                Order for <strong>{o.ledger}</strong> — {o.items?.length || 0} items on {formatDate(o.date)}
-              </li>
-            ))}
-          {shipments
-            ?.filter(filterActivity)
-            .slice(0, 5)
-            .map((s, i) => (
-              <li
-                key={i}
-                className="border-b border-gray-100 pb-2 flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded"
-                onClick={() => setPage && setPage("Shipments")}
-              >
-                <FaTruck className="text-orange-500" />
-                Shipment for <strong>{s.ledger || "N/A"}</strong> on {formatDate(s.date)}
-              </li>
-            ))}
+          {productions?.filter(filterActivity).slice(0, 5).map((p, i) => (
+            <li
+              key={i}
+              className="border-b border-gray-100 pb-2 flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded"
+              onClick={() => setPage && setPage("Production")}
+            >
+              <FaIndustry className="text-indigo-500" />
+              Produced <strong>{p.quantity}</strong> of <strong>{p.product}</strong> on {formatDate(p.date)}
+            </li>
+          ))}
+          {orders?.filter(filterActivity).slice(0, 5).map((o, i) => (
+            <li
+              key={i}
+              className="border-b border-gray-100 pb-2 flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded"
+              onClick={() => setPage && setPage("Orders")}
+            >
+              <FaShoppingCart className="text-green-500" />
+              Order for <strong>{o.ledger}</strong> — {o.items?.length || 0} items on {formatDate(o.date)}
+            </li>
+          ))}
+          {shipments?.filter(filterActivity).slice(0, 5).map((s, i) => (
+            <li
+              key={i}
+              className="border-b border-gray-100 pb-2 flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded"
+              onClick={() => setPage && setPage("Shipments")}
+            >
+              <FaTruck className="text-orange-500" />
+              Shipment for <strong>{s.ledger || "N/A"}</strong> on {formatDate(s.date)}
+            </li>
+          ))}
           {productions?.length === 0 &&
             orders?.length === 0 &&
             shipments?.length === 0 && (

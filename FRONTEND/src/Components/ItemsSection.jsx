@@ -2,6 +2,7 @@ import { useState } from "react";
 import { FaSearch, FaPlus, FaTimes } from "react-icons/fa";
 import ItemForm from "../Features/ItemForm.jsx";
 import ItemCard from "../Features/ItemCard.jsx";
+import axios from "axios";
 
 export default function ItemsSection() {
   const [items, setItems] = useState([
@@ -40,6 +41,7 @@ export default function ItemsSection() {
       image: formData.image ? URL.createObjectURL(formData.image) : null,
     };
     setItems([newItem, ...items]);
+    axios.post("http://localhost:5000/api/stock-items/add", newItem)
     resetForm();
   };
 

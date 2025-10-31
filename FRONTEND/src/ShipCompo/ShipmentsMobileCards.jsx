@@ -17,8 +17,8 @@ export default function ShipmentsMobileCards({
       ) : (
         shipments.map((shipment) => (
           <div
-            key={shipment.id}
-            onMouseEnter={() => setHoveredCard(shipment.id)}
+            key={shipment.tracking}
+            onMouseEnter={() => setHoveredCard(shipment.tracking)}
             onMouseLeave={() => setHoveredCard(null)}
             className="relative bg-white rounded-xl shadow-md border border-gray-200 p-4 transition hover:shadow-lg"
           >
@@ -29,9 +29,9 @@ export default function ShipmentsMobileCards({
               </h3>
               {/* Delete button appears on hover */}
               <button
-                onClick={() => deleteShipment(shipment.id)}
+                onClick={() => deleteShipment(shipment.tracking)}
                 className={`absolute top-3 right-3 p-2 rounded-full bg-red-600 text-white shadow-md transition-transform duration-200 ${
-                  hoveredCard === shipment.id
+                  hoveredCard === shipment.tracking
                     ? "translate-x-0 opacity-100"
                     : "translate-x-6 opacity-0"
                 }`}
@@ -53,8 +53,8 @@ export default function ShipmentsMobileCards({
               </div>
               <div>
                 <p className="font-medium">Status</p>
-                <p className={`${statusColor(shipment.deliveryStatus)} font-semibold`}>
-                  {shipment.deliveryStatus}
+                <p className={`${statusColor(shipment.status)} font-semibold`}>
+                  {shipment.status}
                 </p>
               </div>
               <div>
@@ -63,7 +63,7 @@ export default function ShipmentsMobileCards({
               </div>
               <div className="col-span-2">
                 <p className="font-medium">Last Checked</p>
-                <p className="text-gray-500">{shipment.lastChecked}</p>
+                <p className="text-gray-500">{shipment.lastUpdated}</p>
               </div>
             </div>
 
@@ -72,9 +72,9 @@ export default function ShipmentsMobileCards({
               <button
                 onClick={() => fetchStatus(shipment, false)}
                 className="bg-blue-600 hover:bg-blue-500 text-white p-2 rounded-lg shadow-md transition-all duration-200"
-                disabled={loadingId === shipment.id}
+                disabled={loadingId === shipment.tracking}
               >
-                {loadingId === shipment.id ? (
+                {loadingId === shipment.tracking ? (
                   <FaSyncAlt className="animate-spin" />
                 ) : (
                   <FaSyncAlt />

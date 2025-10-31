@@ -8,8 +8,8 @@ export default function ShipmentsTable({
   statusColor,
   deleteShipment,
 }) {
+  console.log(shipments);
   const [hoveredRow, setHoveredRow] = useState(null);
-
   return (
     <div className="hidden md:block overflow-x-auto">
       <div className="bg-white rounded-2xl shadow-md border border-gray-100">
@@ -50,8 +50,8 @@ export default function ShipmentsTable({
             ) : (
               shipments.map((shipment) => (
                 <tr
-                  key={shipment.id}
-                  onMouseEnter={() => setHoveredRow(shipment.id)}
+                  key={shipment.tracking}
+                  onMouseEnter={() => setHoveredRow(shipment.tracking)}
                   onMouseLeave={() => setHoveredRow(null)}
                   className="group hover:bg-blue-50/40 transition-all duration-300 ease-in-out"
                 >
@@ -65,14 +65,14 @@ export default function ShipmentsTable({
                   </td>
                   <td
                     className={`px-4 py-3 font-semibold ${statusColor(
-                      shipment.deliveryStatus
+                      shipment.status
                     )}`}
                   >
-                    {shipment.deliveryStatus}
+                    {shipment.status}
                   </td>
                   <td className="px-4 py-3 text-gray-700">{shipment.location}</td>
                   <td className="px-4 py-3 text-gray-500 text-sm">
-                    {shipment.lastChecked}
+                    {shipment.lastUpdated}
                   </td>
 
                   {/* ✅ Actions column with hover delete button */}
@@ -81,9 +81,9 @@ export default function ShipmentsTable({
                       <button
                         onClick={() => fetchStatus(shipment, false)}
                         className="bg-blue-600 hover:bg-blue-500 text-white p-2 rounded-lg shadow-sm transition-all duration-200"
-                        disabled={loadingId === shipment.id}
+                        disabled={loadingId === shipment.tracking}
                       >
-                        {loadingId === shipment.id ? (
+                        {loadingId === shipment.tracking ? (
                           <FaSyncAlt className="animate-spin" />
                         ) : (
                           <FaSyncAlt />
@@ -98,9 +98,9 @@ export default function ShipmentsTable({
 
                       {/* Delete button only visible on hover */}
                       <button
-                        onClick={() => deleteShipment(shipment.id)}
+                        onClick={() => deleteShipment(shipment.tracking)}
                         className={`bg-red-600 hover:bg-red-500 text-white p-2 rounded-lg shadow-sm transition-all duration-200 ${
-                          hoveredRow === shipment.id ? "opacity-100" : "opacity-0"
+                          hoveredRow === shipment.tracking ? "opacity-100" : "opacity-0"
                         }`}
                         title="Delete Shipment"
                       >
